@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "engineering-support-platform-backend"
+version = "0.1.0"
+description = "Backend for the Engineering Support Escalation Platform"
+authors = ["Your Name <your.email@example.com>"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Dependencies will be added in future phases
