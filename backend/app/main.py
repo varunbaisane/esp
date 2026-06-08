@@ -1,7 +1,7 @@
-# Placeholder for Backend Main Entry Point
+from fastapi import FastAPI
+from app.core.config import settings
+from app.api.v1.router import api_router
 
-def main():
-    pass
+app = FastAPI(title=settings.PROJECT_NAME)
 
-if __name__ == "__main__":
-    main()
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)

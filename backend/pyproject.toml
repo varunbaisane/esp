@@ -8,4 +8,8 @@ authors = ["Your Name <your.email@example.com>"]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-# Dependencies will be added in future phases
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+uvicorn = "^0.30.0"
+pydantic-settings = "^2.3.0"
