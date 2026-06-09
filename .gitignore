@@ -53,3 +53,9 @@ Thumbs.db
 .env.test.local
 .env.production.local
 .env.local
+
+# logs
+npm-debug.log*
+
+# TypeScript incremental build cache
+*.tsbuildinfo

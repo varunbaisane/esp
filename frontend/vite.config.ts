@@ -1,6 +1,6 @@
-// Placeholder for Vite Configuration
-// import { defineConfig } from 'vite'
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// export default defineConfig({
-//   plugins: [],
-// })
+export default defineConfig({
+  plugins: [react()],
+})
