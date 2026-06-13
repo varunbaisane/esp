@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict  # pyrefly: ignore [missing-import]
 from app.core.db_config import DatabaseSettings
 
 class Settings(BaseSettings):
