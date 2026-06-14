@@ -1,8 +1,8 @@
+# pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
 
 class DatabaseSettings(BaseSettings):
-    database_url: Optional[str] = None
+    database_url: str
 
     model_config = SettingsConfigDict(
         env_file=".env",
