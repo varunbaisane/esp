@@ -18,6 +18,16 @@ class TicketStatusUpdate(BaseModel):
     status: TicketStatus
 
 
+class TicketStats(BaseModel):
+    open: int
+    in_progress: int
+    resolved: int
+    closed: int
+    total: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 
 class TicketSummary(BaseModel):
     id: int

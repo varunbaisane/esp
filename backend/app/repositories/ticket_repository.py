@@ -1,7 +1,7 @@
-from sqlalchemy import select  # pyrefly: ignore [missing-import]
+from sqlalchemy import select, func  # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session  # pyrefly: ignore [missing-import]
 
-from app.models.ticket import Ticket
+from app.models.ticket import Ticket, TicketStatus
 
 
 class TicketRepository:
@@ -19,9 +19,32 @@ class TicketRepository:
         return self._session.execute(stmt).scalar_one_or_none()
 
     def list(self) -> list[Ticket]:
-        stmt = select(Ticket)
+        stmt = select(Ticket).order_by(Ticket.id.desc())
         return list(self._session.execute(stmt).scalars().all())
 
     def list_by_creator(self, user_id: int) -> list[Ticket]:
-        stmt = select(Ticket).where(Ticket.created_by_id == user_id)
+        stmt = select(Ticket).where(Ticket.created_by_id == user_id).order_by(Ticket.id.desc())
         return list(self._session.execute(stmt).scalars().all())
+
+    def list_by_status(self, status: TicketStatus) -> list[Ticket]:
+        stmt = select(Ticket).where(Ticket.status == status).order_by(Ticket.id.desc())
+        return list(self._session.execute(stmt).scalars().all())
+
+    def list_by_assignee(self, user_id: int) -> list[Ticket]:
+        stmt = select(Ticket).where(Ticket.assigned_to_id == user_id).order_by(Ticket.id.desc())
+        return list(self._session.execute(stmt).scalars().all())
+
+    def get_status_counts(self) -> dict[str, int]:
+        stmt = select(Ticket.status, func.count(Ticket.id)).group_by(Ticket.status)
+        counts = self._session.execute(stmt).all()
+        res = {
+            "open": 0,
+            "in_progress": 0,
+            "resolved": 0,
+            "closed": 0,
+            "total": 0,
+        }
+        for status, count in counts:
+            res[status.value.lower()] = count
+            res["total"] += count
+        return res

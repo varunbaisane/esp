@@ -39,7 +39,23 @@ class TicketService:
         return self._repository.list()
 
     def list_by_creator(self, user_id: int) -> list[Ticket]:
+        user = self._user_repository.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
         return self._repository.list_by_creator(user_id)
+
+    def list_by_assignee(self, user_id: int) -> list[Ticket]:
+        user = self._user_repository.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+        return self._repository.list_by_assignee(user_id)
+
+    def list_by_status(self, status: TicketStatus) -> list[Ticket]:
+        return self._repository.list_by_status(status)
+
+    def get_stats(self) -> dict[str, int]:
+        return self._repository.get_status_counts()
+
 
     def assign_user(self, ticket_id: int, user_id: int) -> Ticket:
         ticket = self._repository.get_by_id(ticket_id)

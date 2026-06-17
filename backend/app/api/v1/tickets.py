@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status # pyrefly: ignore [missing-import]
 
 from app.api.deps import get_ticket_service
-from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketAssign, TicketStatusUpdate
+from app.models.ticket import TicketStatus
+from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketAssign, TicketStatusUpdate, TicketStats
 from app.services.ticket_service import TicketService
 
 
@@ -36,21 +37,7 @@ def list_tickets(
     return service.list()
 
 
-@router.get(
-    "/{ticket_id}",
-    response_model=TicketRead,
-)
-def get_ticket(
-    ticket_id: int,
-    service: TicketService = Depends(get_ticket_service),
-) -> TicketRead:
-    ticket = service.get_by_id(ticket_id)
-    if ticket is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Ticket not found",
-        )
-    return ticket
+
 
 
 @router.post(
@@ -101,3 +88,73 @@ def update_ticket_status(
             )
 
 
+@router.get(
+    "/stats",
+    response_model=TicketStats,
+)
+def get_stats(
+    service: TicketService = Depends(get_ticket_service),
+) -> TicketStats:
+    return TicketStats(**service.get_stats())
+
+
+@router.get(
+    "/status/{status}",
+    response_model=list[TicketSummary],
+)
+def list_by_status(
+    status: TicketStatus,
+    service: TicketService = Depends(get_ticket_service),
+) -> list[TicketSummary]:
+    return service.list_by_status(status)
+
+
+@router.get(
+    "/assigned/{user_id}",
+    response_model=list[TicketSummary],
+)
+def list_by_assignee(
+    user_id: int,
+    service: TicketService = Depends(get_ticket_service),
+) -> list[TicketSummary]:
+    try:
+        return service.list_by_assignee(user_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/created/{user_id}",
+    response_model=list[TicketSummary],
+)
+def list_by_creator(
+    user_id: int,
+    service: TicketService = Depends(get_ticket_service),
+) -> list[TicketSummary]:
+    try:
+        return service.list_by_creator(user_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/{ticket_id}",
+    response_model=TicketRead,
+)
+def get_ticket(
+    ticket_id: int,
+    service: TicketService = Depends(get_ticket_service),
+) -> TicketRead:
+    ticket = service.get_by_id(ticket_id)
+    if ticket is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found",
+        )
+    return ticket
