@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status # pyrefly: ignore [missing-import]
 
-from app.api.deps import get_user_service
-from app.schemas import UserCreate, UserRead
-from app.services import UserService
+from fastapi import APIRouter, Depends, HTTPException, status   # pyrefly: ignore [missing-import]
+
+from app.api.deps import get_user_service, get_user_role_service
+from app.schemas import UserCreate, UserRead, UserRoleAssign, UserRoleRead, RoleSummary
+from app.services import UserService, UserRoleService
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -51,3 +52,43 @@ def list_users(
     service: UserService = Depends(get_user_service),
 ) -> list[UserRead]:
     return service.list()
+
+@router.post(
+    "/{user_id}/roles",
+    response_model=UserRoleRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def assign_role_to_user(
+    user_id: int,
+    assignment: UserRoleAssign,
+    service: UserRoleService = Depends(get_user_role_service),
+) -> UserRoleRead:
+    try:
+        return service.assign_role(user_id, assignment.role_id)
+    except ValueError as e:
+        if str(e) in ("User not found", "Role not found"):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e),
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/{user_id}/roles",
+    response_model=list[RoleSummary],
+)
+def get_user_roles(
+    user_id: int,
+    service: UserRoleService = Depends(get_user_role_service),
+) -> list[RoleSummary]:
+    try:
+        return service.get_user_roles(user_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )

@@ -8,3 +8,6 @@ user_roles = Table(
     Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
     Column("role_id", Integer, ForeignKey("roles.id"), primary_key=True),
 )
+
+class UserRole(Base):
+    __table__ = user_roles
