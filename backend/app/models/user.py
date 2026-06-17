@@ -31,3 +31,10 @@ class User(Base):
         secondary=user_roles,
         back_populates="users",
     )
+
+    created_tickets: Mapped[list["Ticket"]] = relationship(  # noqa: F821
+        "Ticket",
+        foreign_keys="Ticket.created_by_id",
+        back_populates="creator",
+    )
+
