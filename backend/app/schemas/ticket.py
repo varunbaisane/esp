@@ -10,6 +10,11 @@ class TicketCreate(BaseModel):
     created_by_id: int
 
 
+class TicketAssign(BaseModel):
+    user_id: int
+
+
+
 class TicketSummary(BaseModel):
     id: int
     title: str

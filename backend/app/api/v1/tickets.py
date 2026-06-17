@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status # pyrefly: ignore [missing-import]
 
 from app.api.deps import get_ticket_service
-from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary
+from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketAssign
 from app.services.ticket_service import TicketService
 
 
@@ -51,3 +51,28 @@ def get_ticket(
             detail="Ticket not found",
         )
     return ticket
+
+
+@router.post(
+    "/{ticket_id}/assign",
+    response_model=TicketRead,
+)
+def assign_ticket(
+    ticket_id: int,
+    assignment_data: TicketAssign,
+    service: TicketService = Depends(get_ticket_service),
+) -> TicketRead:
+    try:
+        return service.assign_user(ticket_id, assignment_data.user_id)
+    except ValueError as e:
+        if str(e) == "Ticket not found":
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e),
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
+
