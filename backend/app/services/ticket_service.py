@@ -59,3 +59,39 @@ class TicketService:
             self._session.rollback()
             raise
 
+    def update_status(self, ticket_id: int, status: TicketStatus) -> Ticket:
+        ticket = self._repository.get_by_id(ticket_id)
+        if not ticket:
+            raise ValueError("Ticket not found")
+
+        ALLOWED_TRANSITIONS = {
+            TicketStatus.OPEN: {
+                TicketStatus.OPEN,
+                TicketStatus.IN_PROGRESS,
+            },
+            TicketStatus.IN_PROGRESS: {
+                TicketStatus.IN_PROGRESS,
+                TicketStatus.RESOLVED,
+            },
+            TicketStatus.RESOLVED: {
+                TicketStatus.RESOLVED,
+                TicketStatus.CLOSED,
+            },
+            TicketStatus.CLOSED: {
+                TicketStatus.CLOSED,
+            },
+        }
+
+        if status not in ALLOWED_TRANSITIONS[ticket.status]:
+            raise ValueError("Invalid status transition")
+
+        ticket.status = status
+
+        try:
+            self._session.commit()
+            return ticket
+        except Exception:
+            self._session.rollback()
+            raise
+
+

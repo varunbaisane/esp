@@ -14,6 +14,10 @@ class TicketAssign(BaseModel):
     user_id: int
 
 
+class TicketStatusUpdate(BaseModel):
+    status: TicketStatus
+
+
 
 class TicketSummary(BaseModel):
     id: int
