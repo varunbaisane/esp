@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session  # pyrefly: ignore [missing-import]
 
-from app.models import UserRole, Role
+from app.models import UserRole, Role, User
 from app.repositories import UserRoleRepository, UserRepository, RoleRepository
 
 
@@ -40,3 +40,11 @@ class UserRoleService:
             raise ValueError("User not found")
 
         return self._repository.list_roles_for_user(user_id)
+
+    def get_role_users(self, role_id: int) -> list[User]:
+        role = self._role_repository.get_by_id(role_id)
+        if not role:
+            raise ValueError("Role not found")
+            
+        return self._repository.list_users_for_role(role_id)
+

@@ -20,3 +20,13 @@ class UserRoleRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class UserSummary(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+

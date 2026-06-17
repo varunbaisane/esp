@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status # pyrefly: ignore [missing-import]
 
-from app.api.deps import get_role_service
-from app.schemas import RoleCreate, RoleRead
-from app.services import RoleService
+from app.api.deps import get_role_service, get_user_role_service
+from app.schemas import RoleCreate, RoleRead, UserSummary
+from app.services import RoleService, UserRoleService
 
 
 router = APIRouter(prefix="/roles", tags=["Roles"])
@@ -51,3 +51,21 @@ def list_roles(
     service: RoleService = Depends(get_role_service),
 ) -> list[RoleRead]:
     return service.list()
+
+
+@router.get(
+    "/{role_id}/users",
+    response_model=list[UserSummary],
+)
+def get_role_users(
+    role_id: int,
+    service: UserRoleService = Depends(get_user_role_service),
+) -> list[UserSummary]:
+    try:
+        return service.get_role_users(role_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
