@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import type { TicketSummary } from "../../types/ticket";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 
@@ -6,6 +7,8 @@ interface TicketRowProps {
 }
 
 export const TicketRow = ({ ticket }: TicketRowProps) => {
+  const navigate = useNavigate();
+
   // Determine assignee display text based on user requirements
   const assigneeText = ticket.assigned_to_id !== null ? `User #${ticket.assigned_to_id}` : "Unassigned";
 
@@ -17,7 +20,10 @@ export const TicketRow = ({ ticket }: TicketRowProps) => {
   });
 
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+    <tr
+      onClick={() => navigate(`/tickets/${ticket.id}`)}
+      className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+    >
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         #{ticket.id}
       </td>

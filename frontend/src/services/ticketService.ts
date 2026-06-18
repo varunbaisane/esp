@@ -10,5 +10,10 @@ export const ticketService = {
   getTickets: async (): Promise<TicketSummary[]> => {
     const response = await apiClient.get<TicketSummary[]>("/tickets");
     return response.data;
+  },
+  
+  getTicket: async (id: number): Promise<TicketSummary> => {
+    const response = await apiClient.get<TicketSummary>(`/tickets/${id}`);
+    return response.data;
   }
 };
