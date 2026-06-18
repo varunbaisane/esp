@@ -11,6 +11,7 @@ export interface TicketStats {
 export interface TicketSummary {
   id: number;
   title: string;
+  description: string | null;
   status: TicketStatus;
   created_by_id: number;
   assigned_to_id: number | null;
