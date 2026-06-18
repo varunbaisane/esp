@@ -1,3 +1,5 @@
+export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+
 export interface TicketStats {
   open: number;
   in_progress: number;
@@ -9,7 +11,7 @@ export interface TicketStats {
 export interface TicketSummary {
   id: number;
   title: string;
-  status: string;
+  status: TicketStatus;
   created_by_id: number;
   assigned_to_id: number | null;
   created_at: string;
