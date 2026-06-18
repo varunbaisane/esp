@@ -1,8 +1,15 @@
-export default function App() {
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { DashboardPage } from "./pages/DashboardPage";
+import "./App.css";
+
+function App() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      <h1>Engineering Support Escalation Platform</h1>
-      <p>Frontend Bootstrap Complete</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
+
+export default App;
