@@ -17,3 +17,9 @@ export interface TicketSummary {
   created_at: string;
   updated_at: string;
 }
+
+export interface TicketCreate {
+  title: string;
+  description: string;
+  created_by_id: number;
+}

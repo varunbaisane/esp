@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ticketService } from "../services/ticketService";
 import type { TicketSummary } from "../types/ticket";
 import { TicketTable } from "../components/tickets/TicketTable";
@@ -33,6 +34,12 @@ export const TicketsPage = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Tickets</h2>
         </div>
+        <Link
+          to="/tickets/new"
+          className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
+        >
+          <span className="text-xl mr-1 leading-none">+</span> <span className="font-semibold">Create Ticket</span>
+        </Link>
       </div>
 
       {loading && <LoadingState message="Loading tickets..." />}
