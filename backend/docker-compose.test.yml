@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: esp-postgres-test
+    environment:
+      POSTGRES_USER: esp
+      POSTGRES_PASSWORD: esp
+      POSTGRES_DB: esp_test_db
+    ports:
+      - "5433:5432"

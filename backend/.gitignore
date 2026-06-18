@@ -1,0 +1,12 @@
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Python
+__pycache__/
+*.pyc
+
+# Env
+.env
+.env.test
