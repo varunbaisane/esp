@@ -1,53 +1,51 @@
 import { useEffect, useState } from "react";
-import { healthService } from "../services/healthService";
 import { ticketService } from "../services/ticketService";
 import type { TicketStats } from "../types/ticket";
+import { StatsGrid } from "../components/dashboard/StatsGrid";
+import { LoadingState } from "../components/common/LoadingState";
+import { ErrorState } from "../components/common/ErrorState";
 
 export const DashboardPage = () => {
-  const [healthStatus, setHealthStatus] = useState<string | null>(null);
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const health = await healthService.getHealth();
-        setHealthStatus(health.status);
-
         const stats = await ticketService.getStats();
         setTicketStats(stats);
       } catch (err: any) {
-        setError(err.message || "Failed to connect to backend");
+        setError(err.message || "Unable to connect to backend.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
+  if (loading) {
+    return <LoadingState message="Loading dashboard..." />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} />;
+  }
+
+  if (!ticketStats) {
+    return null;
+  }
+
   return (
-    <div>
-      <h1>Engineering Support Platform</h1>
-      <h2>Frontend Connected</h2>
-      
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
-      
-      <div>
-        <h3>Backend Status:</h3>
-        <p>{healthStatus || "Connecting..."}</p>
+    <div className="space-y-6">
+      <div className="pb-2">
+        <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
       </div>
 
-      {ticketStats && (
-        <div>
-          <h3>Ticket Stats:</h3>
-          <ul>
-            <li>Open: {ticketStats.open}</li>
-            <li>In Progress: {ticketStats.in_progress}</li>
-            <li>Resolved: {ticketStats.resolved}</li>
-            <li>Closed: {ticketStats.closed}</li>
-            <li>Total: {ticketStats.total}</li>
-          </ul>
-        </div>
-      )}
+      <StatsGrid stats={ticketStats} />
     </div>
   );
 };

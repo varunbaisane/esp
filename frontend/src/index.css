@@ -1,4 +1,6 @@
-/* Base CSS - to be expanded in Phase 5.1 */
+@import "tailwindcss";
+
+/* Base CSS overrides if needed */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -6,4 +8,5 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f3f4f6; /* Tailwind gray-100 */
 }
