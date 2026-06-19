@@ -1,4 +1,5 @@
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+export type TicketFilterStatus = "ALL" | TicketStatus;
 
 export interface TicketStats {
   open: number;
