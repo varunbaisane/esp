@@ -18,8 +18,12 @@ export const DashboardPage = () => {
       try {
         const stats = await ticketService.getStats();
         setTicketStats(stats);
-      } catch (err: any) {
-        setError(err.message || "Unable to connect to backend.");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message || "Unable to connect to backend.");
+        } else {
+          setError("Unable to connect to backend.");
+        }
       } finally {
         setLoading(false);
       }

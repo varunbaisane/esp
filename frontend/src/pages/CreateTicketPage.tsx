@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 import { ticketService } from "../services/ticketService";
 import { userService } from "../services/userService";
 import type { TicketCreate } from "../types/ticket";
@@ -21,7 +22,7 @@ export const CreateTicketPage = () => {
       try {
         const data = await userService.getUsers();
         setUsers(data);
-      } catch (err: any) {
+      } catch {
         setError("Failed to load users for the dropdown.");
       } finally {
         setFetchingUsers(false);
@@ -36,8 +37,14 @@ export const CreateTicketPage = () => {
     try {
       const newTicket = await ticketService.createTicket(data);
       navigate(`/tickets/${newTicket.id}`);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Unable to create ticket.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || err.message || "Unable to create ticket.");
+      } else if (err instanceof Error) {
+        setError(err.message || "Unable to create ticket.");
+      } else {
+        setError("Unable to create ticket.");
+      }
       setLoading(false);
     }
   };

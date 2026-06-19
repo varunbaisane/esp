@@ -31,7 +31,7 @@ export const Sidebar = ({ state, setState }: SidebarProps) => {
 
   const widthClasses = state === 'full' 
     ? "w-full md:w-56" 
-    : (state === 'icon' ? "w-16" : "w-56 md:w-16");
+    : (state === 'icon' ? "w-16" : "w-full");
     
   const transformClasses = state === 'closed'
     ? "-translate-x-full"
@@ -51,7 +51,7 @@ export const Sidebar = ({ state, setState }: SidebarProps) => {
       
       {/* Sidebar Content */}
       <aside className={`
-        fixed inset-y-0 top-[73px] left-0 z-30 bg-white border-r border-gray-200 transform transition-all duration-300 ease-in-out md:static md:top-0 overflow-hidden
+        fixed inset-y-0 top-[73px] left-0 z-30 bg-white border-r border-gray-200 transform transition-all duration-300 ease-in-out md:static overflow-hidden
         ${widthClasses}
         ${transformClasses}
       `}>

@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
 import { ticketService } from "../services/ticketService";
 import type { TicketSummary, TicketFilterStatus } from "../types/ticket";
 import { TicketTable } from "../components/tickets/TicketTable";
@@ -10,7 +9,7 @@ import { TicketStatusFilter } from "../components/tickets/TicketStatusFilter";
 import { EmptySearchResults } from "../components/tickets/EmptySearchResults";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Card } from "../components/common/Card";
-import { COLORS } from "../styles/design-tokens";
+import { Button } from "../components/common/Button";
 
 export const TicketsPage = () => {
   const [tickets, setTickets] = useState<TicketSummary[] | null>(null);
@@ -26,8 +25,12 @@ export const TicketsPage = () => {
       try {
         const data = await ticketService.getTickets();
         setTickets(data);
-      } catch (err: any) {
-        setError(err.message || "Unable to connect to backend while fetching tickets.");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message || "Unable to connect to backend while fetching tickets.");
+        } else {
+          setError("Unable to connect to backend while fetching tickets.");
+        }
       } finally {
         setLoading(false);
       }
@@ -64,12 +67,12 @@ export const TicketsPage = () => {
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Tickets</h2>
           <p className="mt-2 text-sm text-gray-500">Browse and manage all engineering support tickets.</p>
         </div>
-        <Link
+        <Button
           to="/tickets/new"
-          className={`inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white ${COLORS.primary["600"]} ${COLORS.primary.hover.bg["700"]} transition-colors shadow-sm whitespace-nowrap`}
+          variant="primary"
         >
           <span className="text-xl mr-1 leading-none">+</span> <span className="font-semibold">Create Ticket</span>
-        </Link>
+        </Button>
       </div>
 
       {loading && <LoadingState message="Loading tickets..." />}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import axios from "axios";
 import { ticketService } from "../services/ticketService";
 import type { TicketSummary } from "../types/ticket";
 import { TicketDetail } from "../components/tickets/TicketDetail";
@@ -26,11 +27,11 @@ export const TicketDetailPage = () => {
       try {
         const data = await ticketService.getTicket(parseInt(id, 10));
         setTicket(data);
-      } catch (err: any) {
-        if (err.response?.status === 404) {
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
           setNotFound(true);
         } else {
-          setError(err.message || "Unable to connect to backend while fetching ticket details.");
+          setError(err instanceof Error ? err.message : "Unable to connect to backend while fetching ticket details.");
         }
       } finally {
         setLoading(false);
