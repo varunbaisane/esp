@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ticketService } from "../services/ticketService";
 import type { TicketSummary } from "../types/ticket";
 import { TicketTable } from "../components/tickets/TicketTable";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
+import { TicketSearch } from "../components/tickets/TicketSearch";
+import { EmptySearchResults } from "../components/tickets/EmptySearchResults";
 
 export const TicketsPage = () => {
   const [tickets, setTickets] = useState<TicketSummary[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -28,6 +31,18 @@ export const TicketsPage = () => {
     fetchTickets();
   }, []);
 
+  const filteredTickets = useMemo(() => {
+    if (!tickets) return null;
+    if (!searchQuery.trim()) return tickets;
+
+    const query = searchQuery.trim().toLowerCase();
+    return tickets.filter(ticket =>
+      ticket.id.toString().includes(query) ||
+      ticket.title.toLowerCase().includes(query) ||
+      ticket.status.toLowerCase().includes(query)
+    );
+  }, [tickets, searchQuery]);
+
   return (
     <div className="space-y-6">
       <div className="pb-1 flex justify-between items-end">
@@ -44,7 +59,21 @@ export const TicketsPage = () => {
 
       {loading && <LoadingState message="Loading tickets..." />}
       {error && <ErrorState message={error} />}
-      {!loading && !error && tickets && <TicketTable tickets={tickets} />}
+      {!loading && !error && tickets && filteredTickets && (
+        <>
+          <div className="flex flex-col mb-4">
+            <TicketSearch value={searchQuery} onChange={setSearchQuery} />
+            <div className="text-sm text-gray-500 text-right mt-1">
+              Showing {filteredTickets.length} of {tickets.length} tickets
+            </div>
+          </div>
+          {filteredTickets.length > 0 ? (
+            <TicketTable tickets={filteredTickets} />
+          ) : (
+            <EmptySearchResults />
+          )}
+        </>
+      )}
     </div>
   );
 };
