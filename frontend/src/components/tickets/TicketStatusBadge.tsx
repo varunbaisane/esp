@@ -1,22 +1,16 @@
 import type { TicketStatus } from "../../types/ticket";
+import { COLORS } from "../../styles/design-tokens";
 
 interface TicketStatusBadgeProps {
   status: TicketStatus;
 }
 
-const STATUS_STYLES: Record<TicketStatus, string> = {
-  OPEN: "bg-blue-100 text-blue-800 border-blue-200",
-  IN_PROGRESS: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  RESOLVED: "bg-green-100 text-green-800 border-green-200",
-  CLOSED: "bg-gray-100 text-gray-800 border-gray-200",
-};
-
 export const TicketStatusBadge = ({ status }: TicketStatusBadgeProps) => {
-  const styles = STATUS_STYLES[status] || "bg-gray-100 text-gray-800 border-gray-200";
+  const styles = COLORS.status[status] || COLORS.status.CLOSED;
   const formattedStatus = status.replace("_", " ");
   
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles.bg} ${styles.text} ${styles.border}`}>
       {formattedStatus}
     </span>
   );

@@ -7,6 +7,7 @@ import type { User } from "../types/user";
 import { TicketForm } from "../components/tickets/TicketForm";
 import { FormError } from "../components/common/FormError";
 import { LoadingState } from "../components/common/LoadingState";
+import { PageContainer } from "../components/layout/PageContainer";
 
 export const CreateTicketPage = () => {
   const navigate = useNavigate();
@@ -42,18 +43,21 @@ export const CreateTicketPage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div className="pb-2">
-        <Link 
-          to="/tickets" 
-          className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors inline-flex items-center"
-        >
-          &larr; Back to Tickets
-        </Link>
-      </div>
+    <PageContainer className="max-w-3xl">
+      <div>
+        <div className="mb-4">
+          <Link 
+            to="/tickets" 
+            className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors inline-flex items-center"
+          >
+            &larr; Back to Tickets
+          </Link>
+        </div>
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Create Ticket</h2>
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Create Ticket</h2>
+          <p className="mt-2 text-sm text-gray-500">Submit a new engineering support request.</p>
+        </div>
       </div>
 
       {error && <FormError message={error} />}
@@ -67,6 +71,6 @@ export const CreateTicketPage = () => {
           loading={loading} 
         />
       )}
-    </div>
+    </PageContainer>
   );
 };

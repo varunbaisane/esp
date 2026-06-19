@@ -1,6 +1,6 @@
 export const EmptySearchResults = () => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+    <div className="py-12 text-center">
       <svg
         className="mx-auto h-12 w-12 text-gray-400"
         fill="none"

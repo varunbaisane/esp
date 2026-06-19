@@ -1,12 +1,14 @@
+import { Card } from "./Card";
+
 interface LoadingStateProps {
   message?: string;
 }
 
 export const LoadingState = ({ message = "Loading..." }: LoadingStateProps) => {
   return (
-    <div className="flex flex-col items-center justify-center p-12">
-      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p className="text-gray-600 font-medium">{message}</p>
-    </div>
+    <Card className="flex flex-col items-center justify-center p-12 text-center">
+      <div className="text-4xl text-gray-400 mb-4 animate-pulse">○</div>
+      <p className="text-sm font-medium text-gray-500">{message}</p>
+    </Card>
   );
 };

@@ -4,6 +4,7 @@ import type { TicketStats } from "../types/ticket";
 import { StatsGrid } from "../components/dashboard/StatsGrid";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
+import { PageContainer } from "../components/layout/PageContainer";
 
 export const DashboardPage = () => {
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
@@ -40,12 +41,13 @@ export const DashboardPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="pb-2">
-        <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
+    <PageContainer>
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h2>
+        <p className="mt-2 text-sm text-gray-500">Overview of current ticket statuses.</p>
       </div>
 
       <StatsGrid stats={ticketStats} />
-    </div>
+    </PageContainer>
   );
 };

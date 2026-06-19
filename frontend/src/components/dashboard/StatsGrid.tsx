@@ -7,12 +7,11 @@ interface StatsGridProps {
 
 export const StatsGrid = ({ stats }: StatsGridProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-      <StatCard title="Total" value={stats.total} />
-      <StatCard title="Open" value={stats.open} />
-      <StatCard title="In Progress" value={stats.in_progress} />
-      <StatCard title="Resolved" value={stats.resolved} />
-      <StatCard title="Closed" value={stats.closed} />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <StatCard title="Open" value={stats.open} status="OPEN" subtitle="Active" />
+      <StatCard title="In Progress" value={stats.in_progress} status="IN_PROGRESS" subtitle="Active" />
+      <StatCard title="Resolved" value={stats.resolved} status="RESOLVED" subtitle="Completed" />
+      <StatCard title="Closed" value={stats.closed} status="CLOSED" subtitle="Archived" />
     </div>
   );
 };

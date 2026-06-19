@@ -1,9 +1,22 @@
 export const EmptyTickets = () => {
   return (
-    <div className="flex flex-col items-center justify-center p-12 bg-white rounded-lg border border-gray-200">
-      <div className="text-4xl mb-4">📋</div>
-      <h3 className="text-lg font-medium text-gray-900">No tickets found</h3>
-      <p className="text-gray-500 mt-1">There are currently no tickets in the system.</p>
+    <div className="py-12 text-center">
+      <svg
+        className="mx-auto h-12 w-12 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1}
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+        />
+      </svg>
+      <h3 className="mt-4 text-sm font-medium text-gray-900">No tickets found</h3>
+      <p className="mt-1 text-sm text-gray-500">There are currently no tickets in the system.</p>
     </div>
   );
 };

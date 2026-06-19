@@ -1,4 +1,5 @@
 import type { User } from "../../types/user";
+import { COLORS } from "../../styles/design-tokens";
 
 interface TicketFormFieldsProps {
   users: User[];
@@ -35,7 +36,7 @@ export const TicketFormFields = ({
           disabled={disabled}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-500"
+          className={`w-full px-3 py-2 border border-gray-200 rounded-sm focus:outline-none ${COLORS.primary.ring["500"]} focus:border-cyan-500 sm:text-sm disabled:bg-gray-50 disabled:text-gray-400`}
           placeholder="Brief summary of the issue"
         />
       </div>
@@ -51,7 +52,7 @@ export const TicketFormFields = ({
           disabled={disabled}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-500"
+          className={`w-full px-3 py-2 border border-gray-200 rounded-sm focus:outline-none ${COLORS.primary.ring["500"]} focus:border-cyan-500 sm:text-sm disabled:bg-gray-50 disabled:text-gray-400`}
           placeholder="Detailed explanation of the problem..."
         />
       </div>
@@ -67,7 +68,7 @@ export const TicketFormFields = ({
           disabled={disabled || users.length === 0}
           value={createdById}
           onChange={(e) => setCreatedById(e.target.value ? Number(e.target.value) : "")}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-500 bg-white"
+          className={`w-full px-3 py-2 border border-gray-200 rounded-sm focus:outline-none ${COLORS.primary.ring["500"]} focus:border-cyan-500 sm:text-sm disabled:bg-gray-50 disabled:text-gray-400 bg-white`}
         >
           <option value="" disabled>Select User</option>
           {users.map((user) => (

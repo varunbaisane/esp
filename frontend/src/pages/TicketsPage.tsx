@@ -8,6 +8,9 @@ import { ErrorState } from "../components/common/ErrorState";
 import { TicketSearch } from "../components/tickets/TicketSearch";
 import { TicketStatusFilter } from "../components/tickets/TicketStatusFilter";
 import { EmptySearchResults } from "../components/tickets/EmptySearchResults";
+import { PageContainer } from "../components/layout/PageContainer";
+import { Card } from "../components/common/Card";
+import { COLORS } from "../styles/design-tokens";
 
 export const TicketsPage = () => {
   const [tickets, setTickets] = useState<TicketSummary[] | null>(null);
@@ -55,14 +58,15 @@ export const TicketsPage = () => {
   }, [tickets, searchQuery, statusFilter]);
 
   return (
-    <div className="space-y-6">
-      <div className="pb-1 flex justify-between items-end">
+    <PageContainer>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Tickets</h2>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Tickets</h2>
+          <p className="mt-2 text-sm text-gray-500">Browse and manage all engineering support tickets.</p>
         </div>
         <Link
           to="/tickets/new"
-          className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
+          className={`inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white ${COLORS.primary["600"]} ${COLORS.primary.hover.bg["700"]} transition-colors shadow-sm whitespace-nowrap`}
         >
           <span className="text-xl mr-1 leading-none">+</span> <span className="font-semibold">Create Ticket</span>
         </Link>
@@ -71,27 +75,29 @@ export const TicketsPage = () => {
       {loading && <LoadingState message="Loading tickets..." />}
       {error && <ErrorState message={error} />}
       {!loading && !error && tickets && filteredTickets && (
-        <>
-          <div className="flex flex-col mb-4">
-            <div className="flex flex-col sm:flex-row gap-4 mb-2">
-              <div className="flex-1">
+        <Card noPadding>
+          <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col sm:flex-row gap-4 justify-between items-center rounded-t-xl">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto flex-1">
+              <div className="sm:max-w-xs w-full">
                 <TicketSearch value={searchQuery} onChange={setSearchQuery} />
               </div>
-              <div className="sm:w-64">
+              <div className="sm:w-48 w-full">
                 <TicketStatusFilter value={statusFilter} onChange={setStatusFilter} />
               </div>
             </div>
-            <div className="text-sm text-gray-500 text-right mt-1">
+            <div className="text-sm font-medium text-gray-500 whitespace-nowrap">
               Showing {filteredTickets.length} of {tickets.length} tickets{statusFilter !== "ALL" && ` • Status: ${statusFilter}`}
             </div>
           </div>
           {filteredTickets.length > 0 ? (
             <TicketTable tickets={filteredTickets} />
           ) : (
-            <EmptySearchResults />
+            <div className="p-6">
+              <EmptySearchResults />
+            </div>
           )}
-        </>
+        </Card>
       )}
-    </div>
+    </PageContainer>
   );
 };

@@ -6,6 +6,7 @@ import { TicketDetail } from "../components/tickets/TicketDetail";
 import { TicketNotFound } from "../components/tickets/TicketNotFound";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
+import { PageContainer } from "../components/layout/PageContainer";
 
 export const TicketDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,20 +41,22 @@ export const TicketDetailPage = () => {
   }, [id]);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="pb-2">
-        <Link 
-          to="/tickets" 
-          className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors inline-flex items-center"
-        >
-          &larr; Back to Tickets
-        </Link>
+    <PageContainer className="max-w-4xl">
+      <div>
+        <div className="mb-4">
+          <Link 
+            to="/tickets" 
+            className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors inline-flex items-center"
+          >
+            &larr; Back to Tickets
+          </Link>
+        </div>
+        
+        {loading && <LoadingState message="Loading ticket details..." />}
+        {error && !notFound && <ErrorState message={error} />}
+        {notFound && !loading && <TicketNotFound />}
+        {!loading && !error && !notFound && ticket && <TicketDetail ticket={ticket} />}
       </div>
-      
-      {loading && <LoadingState message="Loading ticket details..." />}
-      {error && !notFound && <ErrorState message={error} />}
-      {notFound && !loading && <TicketNotFound />}
-      {!loading && !error && !notFound && ticket && <TicketDetail ticket={ticket} />}
-    </div>
+    </PageContainer>
   );
 };
