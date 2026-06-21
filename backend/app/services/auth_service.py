@@ -4,7 +4,7 @@ from app.models.user import User
 from app.schemas.auth import RegisterRequest, LoginRequest
 from app.core.security import hash_password, verify_password
 from app.repositories.user_repository import UserRepository
-from app.exceptions.auth import EmailAlreadyRegisteredError
+from app.exceptions.auth import EmailAlreadyRegisteredError, InvalidCredentialsError
 
 
 class AuthService:
@@ -26,5 +26,13 @@ class AuthService:
         db.commit()
         return created_user
 
-    def authenticate_user(self, db: Session, data: LoginRequest) -> User | None:
-        raise NotImplementedError("Authentication implementation deferred to Phase 6.4")
+    def authenticate_user(self, db: Session, data: LoginRequest) -> User:
+        user_repo = UserRepository(db)
+        user = user_repo.get_by_email(data.email)
+        if not user:
+            raise InvalidCredentialsError()
+            
+        if not verify_password(data.password, user.hashed_password):
+            raise InvalidCredentialsError()
+            
+        return user
