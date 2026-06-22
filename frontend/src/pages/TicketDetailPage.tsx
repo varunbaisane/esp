@@ -56,7 +56,24 @@ export const TicketDetailPage = () => {
         {loading && <LoadingState message="Loading ticket details..." />}
         {error && !notFound && <ErrorState message={error} />}
         {notFound && !loading && <TicketNotFound />}
-        {!loading && !error && !notFound && ticket && <TicketDetail ticket={ticket} />}
+        {!loading && !error && !notFound && ticket && (
+          <TicketDetail 
+            ticket={ticket} 
+            onUpdate={async (updateData) => {
+              try {
+                const updatedTicket = await ticketService.updateTicket(ticket.id, updateData);
+                setTicket(updatedTicket);
+                setError(null);
+              } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                  setError(err.response?.data?.detail || "Failed to update ticket.");
+                } else {
+                  setError("Failed to update ticket.");
+                }
+              }
+            }}
+          />
+        )}
       </div>
     </PageContainer>
   );

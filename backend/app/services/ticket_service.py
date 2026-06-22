@@ -4,6 +4,8 @@ from app.models.ticket import Ticket, TicketStatus, TicketPriority
 from app.repositories.ticket_repository import TicketRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.ticket import TicketCreate, TicketUpdate
+from app.domain.ticket_workflow import can_transition
+from app.exceptions.ticket import InvalidTicketTransitionError
 
 
 class TicketService:
@@ -63,7 +65,9 @@ class TicketService:
         if not ticket:
             raise ValueError("Ticket not found")
 
-        if update_data.status is not None:
+        if update_data.status is not None and update_data.status != ticket.status:
+            if not can_transition(ticket.status, update_data.status):
+                raise InvalidTicketTransitionError(f"Cannot transition from {ticket.status.value} to {update_data.status.value}")
             ticket.status = update_data.status
             
         if update_data.priority is not None:

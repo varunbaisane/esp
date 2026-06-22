@@ -6,6 +6,7 @@ from app.models.ticket import TicketStatus
 from app.models.user import User
 from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketUpdate, TicketStats
 from app.services.ticket_service import TicketService
+from app.exceptions.ticket import InvalidTicketTransitionError
 
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
@@ -56,6 +57,11 @@ def update_ticket(
 ) -> TicketRead:
     try:
         return service.update(ticket_id, update_data)
+    except InvalidTicketTransitionError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
     except ValueError as e:
         if str(e) == "Ticket not found":
             raise HTTPException(
