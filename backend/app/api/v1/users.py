@@ -2,6 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status   # pyrefly: ignore [missing-import]
 
 from app.api.deps import get_user_service, get_user_role_service
+from app.api.deps.rbac import require_roles
+from app.models import User
 from app.schemas import UserCreate, UserRead, UserRoleAssign, UserRoleRead, RoleSummary
 from app.services import UserService, UserRoleService
 
@@ -17,6 +19,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def create_user(
     user_data: UserCreate,
     service: UserService = Depends(get_user_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> UserRead:
     try:
         return service.create(user_data)
@@ -34,6 +37,7 @@ def create_user(
 def get_user(
     user_id: int,
     service: UserService = Depends(get_user_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> UserRead:
     user = service.get_by_id(user_id)
     if user is None:
@@ -50,6 +54,7 @@ def get_user(
 )
 def list_users(
     service: UserService = Depends(get_user_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> list[UserRead]:
     return service.list()
 
@@ -62,6 +67,7 @@ def assign_role_to_user(
     user_id: int,
     assignment: UserRoleAssign,
     service: UserRoleService = Depends(get_user_role_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> UserRoleRead:
     try:
         return service.assign_role(user_id, assignment.role_id)
@@ -84,6 +90,7 @@ def assign_role_to_user(
 def get_user_roles(
     user_id: int,
     service: UserRoleService = Depends(get_user_role_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> list[RoleSummary]:
     try:
         return service.get_user_roles(user_id)

@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status # pyrefly: ignore [missing-import]
 
 from app.api.deps import get_role_service, get_user_role_service
+from app.api.deps.rbac import require_roles
+from app.models import User
 from app.schemas import RoleCreate, RoleRead, UserSummary
 from app.services import RoleService, UserRoleService
 
@@ -16,6 +18,7 @@ router = APIRouter(prefix="/roles", tags=["Roles"])
 def create_role(
     role_data: RoleCreate,
     service: RoleService = Depends(get_role_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> RoleRead:
     try:
         return service.create(role_data)
@@ -33,6 +36,7 @@ def create_role(
 def get_role(
     role_id: int,
     service: RoleService = Depends(get_role_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> RoleRead:
     role = service.get_by_id(role_id)
     if role is None:
@@ -49,6 +53,7 @@ def get_role(
 )
 def list_roles(
     service: RoleService = Depends(get_role_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> list[RoleRead]:
     return service.list()
 
@@ -60,6 +65,7 @@ def list_roles(
 def get_role_users(
     role_id: int,
     service: UserRoleService = Depends(get_user_role_service),
+    _: User = Depends(require_roles(["admin"])),
 ) -> list[UserSummary]:
     try:
         return service.get_role_users(role_id)
