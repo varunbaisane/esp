@@ -1,9 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthFormActions } from "./AuthFormActions";
 import type { RegisterRequest } from "../../types/auth";
+import { authService } from "../../services/authService";
 import { COLORS } from "../../styles/design-tokens";
+import axios from "axios";
 
 export const RegisterForm = () => {
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [formData, setFormData] = useState<RegisterRequest & { confirmPassword: string }>({
     full_name: "",
@@ -12,14 +18,43 @@ export const RegisterForm = () => {
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Phase 5.8: No logic, just UI structure
-    console.log("Register submitted:", formData);
+    setError(null);
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authService.register({
+        full_name: formData.full_name,
+        email: formData.email,
+        password: formData.password,
+      });
+      // Redirect to login page on success
+      navigate("/login");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        setError("Email already registered");
+      } else {
+        setError("Unable to connect to server");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
+      {error && (
+        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+          {error}
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700">Full Name</label>
         <div className="mt-1">
@@ -105,7 +140,7 @@ export const RegisterForm = () => {
         </div>
       </div>
 
-      <AuthFormActions submitText="Create Account" />
+      <AuthFormActions submitText={isLoading ? "Creating..." : "Create Account"} />
     </form>
   );
 };

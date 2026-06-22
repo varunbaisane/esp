@@ -1,22 +1,50 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthFormActions } from "./AuthFormActions";
 import type { LoginRequest } from "../../types/auth";
+import { authService } from "../../services/authService";
+import { useAuth } from "../../hooks/useAuth";
 import { COLORS } from "../../styles/design-tokens";
+import axios from "axios";
 
 export const LoginForm = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<LoginRequest>({
     email: "",
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Phase 5.8: No logic, just UI structure
-    console.log("Login submitted:", formData);
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await authService.login(formData);
+      login(response.access_token);
+      navigate("/dashboard");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        setError("Invalid email or password");
+      } else {
+        setError("Unable to connect to server");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
+      {error && (
+        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+          {error}
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700">Email address</label>
         <div className="mt-1">
@@ -63,7 +91,7 @@ export const LoginForm = () => {
         </div>
       </div>
 
-      <AuthFormActions submitText="Sign in" />
+      <AuthFormActions submitText={isLoading ? "Signing in..." : "Sign in"} />
     </form>
   );
 };
