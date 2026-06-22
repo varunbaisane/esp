@@ -5,3 +5,11 @@ class EmailAlreadyRegisteredError(Exception):
 class InvalidCredentialsError(Exception):
     """Raised when authentication fails due to incorrect email or password."""
     pass
+
+class InvalidTokenError(Exception):
+    """Raised when the provided JWT is malformed, has invalid signature, or is missing required claims."""
+    pass
+
+class TokenExpiredError(Exception):
+    """Raised when the provided JWT has expired."""
+    pass

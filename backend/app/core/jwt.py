@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta, timezone
-from jose import jwt  # pyright: ignore[reportMissingImports]
+from jose import jwt, JWTError, ExpiredSignatureError  # pyright: ignore[reportMissingImports]
 
 from app.core.auth_config import auth_settings
+from app.schemas.auth import TokenPayload
+from app.exceptions.auth import InvalidTokenError, TokenExpiredError
 
 def create_access_token(subject: str) -> str:
     """Create a short-lived JSON Web Token."""
@@ -15,3 +17,23 @@ def create_access_token(subject: str) -> str:
         algorithm=auth_settings.JWT_ALGORITHM
     )
     return encoded_jwt
+
+def decode_access_token(token: str) -> TokenPayload:
+    """Decode and validate a JSON Web Token."""
+    try:
+        payload = jwt.decode(
+            token,
+            auth_settings.JWT_SECRET_KEY,
+            algorithms=[auth_settings.JWT_ALGORITHM]
+        )
+        
+        sub = payload.get("sub")
+        if not sub:
+            raise InvalidTokenError()
+            
+        return TokenPayload(sub=sub)
+        
+    except ExpiredSignatureError:
+        raise TokenExpiredError()
+    except JWTError:
+        raise InvalidTokenError()

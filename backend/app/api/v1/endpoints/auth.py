@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status # pyrefly: ignore 
 from sqlalchemy.orm import Session # pyrefly: ignore [missing-import] 
 
 from app.api.deps import get_db
+from app.api.deps.auth import get_current_user
+from app.models import User
 from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
 from app.schemas.user import UserRead
 from app.services.auth_service import AuthService
@@ -44,3 +46,12 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
+
+@router.get("/me", response_model=UserRead)
+def get_me(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get current user profile.
+    """
+    return current_user

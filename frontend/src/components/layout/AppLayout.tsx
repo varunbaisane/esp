@@ -1,6 +1,8 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -10,6 +12,13 @@ type SidebarState = 'full' | 'icon' | 'closed';
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const [sidebarState, setSidebarState] = useState<SidebarState>('closed');
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -45,7 +54,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header spans full width */}
-      <Header onMenuClick={toggleSidebar} />
+      <Header onMenuClick={toggleSidebar} onLogout={handleLogout} />
 
       <div className="flex-1 flex min-h-0 relative">
         <Sidebar state={sidebarState} setState={setSidebarState} />
