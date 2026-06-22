@@ -1,13 +1,17 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict  # pyrefly: ignore [missing-import]
 
-from app.models.ticket import TicketStatus
-
+from app.models.ticket import TicketStatus, TicketPriority
 
 class TicketCreate(BaseModel):
     title: str
     description: str
-    created_by_id: int
+    priority: TicketPriority
+
+class TicketUpdate(BaseModel):
+    status: TicketStatus | None = None
+    priority: TicketPriority | None = None
+    assigned_to_id: int | None = None
 
 
 class TicketAssign(BaseModel):
@@ -33,7 +37,9 @@ class TicketSummary(BaseModel):
     id: int
     title: str
     status: TicketStatus
+    priority: TicketPriority
     created_by_id: int
+    assigned_to_id: int | None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -44,8 +50,11 @@ class TicketRead(BaseModel):
     title: str
     description: str
     status: TicketStatus
+    priority: TicketPriority
     created_by_id: int
+    created_by_name: str
     assigned_to_id: int | None
+    assigned_to_name: str | None
     created_at: datetime
     updated_at: datetime
 

@@ -1,10 +1,11 @@
-import type { TicketSummary } from "../../types/ticket";
+import type { TicketRead } from "../../types/ticket";
 import { TicketStatusBadge } from "./TicketStatusBadge";
+import { TicketPriorityBadge } from "./TicketPriorityBadge";
 import { TicketMetadata } from "./TicketMetadata";
 import { Card } from "../common/Card";
 
 interface TicketDetailProps {
-  ticket: TicketSummary;
+  ticket: TicketRead;
 }
 
 export const TicketDetail = ({ ticket }: TicketDetailProps) => {
@@ -20,6 +21,7 @@ export const TicketDetail = ({ ticket }: TicketDetailProps) => {
               Ticket #{ticket.id}
             </span>
             <TicketStatusBadge status={ticket.status} />
+            <TicketPriorityBadge priority={ticket.priority} />
           </div>
         </div>
       </Card>

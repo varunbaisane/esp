@@ -39,3 +39,9 @@ class User(Base):
         back_populates="creator",
     )
 
+    assigned_tickets: Mapped[list["Ticket"]] = relationship(  # noqa: F821
+        "Ticket",
+        foreign_keys="Ticket.assigned_to_id",
+        back_populates="assigned_to",
+    )
+

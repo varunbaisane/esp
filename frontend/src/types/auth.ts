@@ -19,6 +19,7 @@ export interface TokenResponse {
 export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 export interface AuthContextType extends AuthState {

@@ -1,29 +1,27 @@
 import { useState } from "react";
-import type { TicketCreate } from "../../types/ticket";
-import type { User } from "../../types/user";
+import type { TicketCreate, TicketPriority } from "../../types/ticket";
 import { TicketFormFields } from "./TicketFormFields";
 import { TicketFormActions } from "./TicketFormActions";
 import { Card } from "../common/Card";
 
 interface TicketFormProps {
-  users: User[];
   onSubmit: (data: TicketCreate) => void;
   loading: boolean;
 }
 
-export const TicketForm = ({ users, onSubmit, loading }: TicketFormProps) => {
+export const TicketForm = ({ onSubmit, loading }: TicketFormProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [createdById, setCreatedById] = useState<number | "">("");
+  const [priority, setPriority] = useState<TicketPriority | "">("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || createdById === "") return;
+    if (!title || priority === "") return;
 
     onSubmit({
       title,
       description,
-      created_by_id: createdById,
+      priority,
     });
   };
 
@@ -35,13 +33,12 @@ export const TicketForm = ({ users, onSubmit, loading }: TicketFormProps) => {
         </div>
 
         <TicketFormFields 
-          users={users}
           title={title}
           setTitle={setTitle}
           description={description}
           setDescription={setDescription}
-          createdById={createdById}
-          setCreatedById={setCreatedById}
+          priority={priority}
+          setPriority={setPriority}
           disabled={loading}
         />
         

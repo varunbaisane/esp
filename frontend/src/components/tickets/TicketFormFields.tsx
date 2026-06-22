@@ -1,25 +1,23 @@
-import type { User } from "../../types/user";
+import type { TicketPriority } from "../../types/ticket";
 import { COLORS } from "../../styles/design-tokens";
 
 interface TicketFormFieldsProps {
-  users: User[];
   title: string;
   setTitle: (value: string) => void;
   description: string;
   setDescription: (value: string) => void;
-  createdById: number | "";
-  setCreatedById: (value: number | "") => void;
+  priority: TicketPriority | "";
+  setPriority: (value: TicketPriority | "") => void;
   disabled: boolean;
 }
 
 export const TicketFormFields = ({
-  users,
   title,
   setTitle,
   description,
   setDescription,
-  createdById,
-  setCreatedById,
+  priority,
+  setPriority,
   disabled
 }: TicketFormFieldsProps) => {
   return (
@@ -58,24 +56,23 @@ export const TicketFormFields = ({
       </div>
 
       <div>
-        <label htmlFor="createdById" className="block text-sm font-medium text-gray-700 mb-1">
-          Created By <span className="text-red-500">*</span>
+        <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
+          Priority <span className="text-red-500">*</span>
         </label>
         <select
-          id="createdById"
-          name="createdById"
+          id="priority"
+          name="priority"
           required
-          disabled={disabled || users.length === 0}
-          value={createdById}
-          onChange={(e) => setCreatedById(e.target.value ? Number(e.target.value) : "")}
+          disabled={disabled}
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as TicketPriority | "")}
           className={`w-full px-3 py-2 border border-gray-200 rounded-sm focus:outline-none ${COLORS.primary.ring["500"]} focus:border-cyan-500 sm:text-sm disabled:bg-gray-50 disabled:text-gray-400 bg-white`}
         >
-          <option value="" disabled>Select User</option>
-          {users.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.username} (User #{user.id})
-            </option>
-          ))}
+          <option value="" disabled>Select Priority</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
         </select>
       </div>
     </div>

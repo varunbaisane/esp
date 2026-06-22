@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status # pyrefly: ignore [missing-import]
 
 from app.api.deps import get_ticket_service
+from app.api.deps.auth import get_current_user
 from app.models.ticket import TicketStatus
-from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketAssign, TicketStatusUpdate, TicketStats
+from app.models.user import User
+from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketUpdate, TicketStats
 from app.services.ticket_service import TicketService
 
 
@@ -17,9 +19,10 @@ router = APIRouter(prefix="/tickets", tags=["Tickets"])
 def create_ticket(
     ticket_data: TicketCreate,
     service: TicketService = Depends(get_ticket_service),
+    current_user: User = Depends(get_current_user),
 ) -> TicketRead:
     try:
-        return service.create(ticket_data)
+        return service.create(ticket_data, current_user.id)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -33,6 +36,7 @@ def create_ticket(
 )
 def list_tickets(
     service: TicketService = Depends(get_ticket_service),
+    _: User = Depends(get_current_user),
 ) -> list[TicketSummary]:
     return service.list()
 
@@ -40,41 +44,18 @@ def list_tickets(
 
 
 
-@router.post(
-    "/{ticket_id}/assign",
+@router.patch(
+    "/{ticket_id}",
     response_model=TicketRead,
 )
-def assign_ticket(
+def update_ticket(
     ticket_id: int,
-    assignment_data: TicketAssign,
+    update_data: TicketUpdate,
     service: TicketService = Depends(get_ticket_service),
+    _: User = Depends(get_current_user),
 ) -> TicketRead:
     try:
-        return service.assign_user(ticket_id, assignment_data.user_id)
-    except ValueError as e:
-        if str(e) == "Ticket not found":
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=str(e),
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(e),
-            )
-
-
-@router.post(
-    "/{ticket_id}/status",
-    response_model=TicketRead,
-)
-def update_ticket_status(
-    ticket_id: int,
-    status_data: TicketStatusUpdate,
-    service: TicketService = Depends(get_ticket_service),
-) -> TicketRead:
-    try:
-        return service.update_status(ticket_id, status_data.status)
+        return service.update(ticket_id, update_data)
     except ValueError as e:
         if str(e) == "Ticket not found":
             raise HTTPException(
@@ -94,6 +75,7 @@ def update_ticket_status(
 )
 def get_stats(
     service: TicketService = Depends(get_ticket_service),
+    _: User = Depends(get_current_user),
 ) -> TicketStats:
     return TicketStats(**service.get_stats())
 
@@ -105,6 +87,7 @@ def get_stats(
 def list_by_status(
     status: TicketStatus,
     service: TicketService = Depends(get_ticket_service),
+    _: User = Depends(get_current_user),
 ) -> list[TicketSummary]:
     return service.list_by_status(status)
 
@@ -116,6 +99,7 @@ def list_by_status(
 def list_by_assignee(
     user_id: int,
     service: TicketService = Depends(get_ticket_service),
+    _: User = Depends(get_current_user),
 ) -> list[TicketSummary]:
     try:
         return service.list_by_assignee(user_id)
@@ -133,6 +117,7 @@ def list_by_assignee(
 def list_by_creator(
     user_id: int,
     service: TicketService = Depends(get_ticket_service),
+    _: User = Depends(get_current_user),
 ) -> list[TicketSummary]:
     try:
         return service.list_by_creator(user_id)
@@ -150,6 +135,7 @@ def list_by_creator(
 def get_ticket(
     ticket_id: int,
     service: TicketService = Depends(get_ticket_service),
+    _: User = Depends(get_current_user),
 ) -> TicketRead:
     ticket = service.get_by_id(ticket_id)
     if ticket is None:

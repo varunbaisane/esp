@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session  # pyrefly: ignore [missing-import]
 
-from app.models.ticket import Ticket, TicketStatus
+from app.models.ticket import Ticket, TicketStatus, TicketPriority
 from app.repositories.ticket_repository import TicketRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.ticket import TicketCreate
+from app.schemas.ticket import TicketCreate, TicketUpdate
 
 
 class TicketService:
@@ -12,15 +12,16 @@ class TicketService:
         self._repository = TicketRepository(session)
         self._user_repository = UserRepository(session)
 
-    def create(self, ticket_data: TicketCreate) -> Ticket:
-        user = self._user_repository.get_by_id(ticket_data.created_by_id)
+    def create(self, ticket_data: TicketCreate, user_id: int) -> Ticket:
+        user = self._user_repository.get_by_id(user_id)
         if not user:
             raise ValueError("User not found")
 
         ticket = Ticket(
             title=ticket_data.title,
             description=ticket_data.description,
-            created_by_id=ticket_data.created_by_id,
+            priority=ticket_data.priority,
+            created_by_id=user_id,
             status=TicketStatus.OPEN,
         )
 
@@ -57,16 +58,22 @@ class TicketService:
         return self._repository.get_status_counts()
 
 
-    def assign_user(self, ticket_id: int, user_id: int) -> Ticket:
+    def update(self, ticket_id: int, update_data: TicketUpdate) -> Ticket:
         ticket = self._repository.get_by_id(ticket_id)
         if not ticket:
             raise ValueError("Ticket not found")
 
-        user = self._user_repository.get_by_id(user_id)
-        if not user:
-            raise ValueError("User not found")
-
-        ticket.assigned_to_id = user_id
+        if update_data.status is not None:
+            ticket.status = update_data.status
+            
+        if update_data.priority is not None:
+            ticket.priority = update_data.priority
+            
+        if update_data.assigned_to_id is not None:
+            user = self._user_repository.get_by_id(update_data.assigned_to_id)
+            if not user:
+                raise ValueError("Assignee not found")
+            ticket.assigned_to_id = update_data.assigned_to_id
 
         try:
             self._session.commit()
@@ -74,40 +81,3 @@ class TicketService:
         except Exception:
             self._session.rollback()
             raise
-
-    def update_status(self, ticket_id: int, status: TicketStatus) -> Ticket:
-        ticket = self._repository.get_by_id(ticket_id)
-        if not ticket:
-            raise ValueError("Ticket not found")
-
-        ALLOWED_TRANSITIONS = {
-            TicketStatus.OPEN: {
-                TicketStatus.OPEN,
-                TicketStatus.IN_PROGRESS,
-            },
-            TicketStatus.IN_PROGRESS: {
-                TicketStatus.IN_PROGRESS,
-                TicketStatus.RESOLVED,
-            },
-            TicketStatus.RESOLVED: {
-                TicketStatus.RESOLVED,
-                TicketStatus.CLOSED,
-            },
-            TicketStatus.CLOSED: {
-                TicketStatus.CLOSED,
-            },
-        }
-
-        if status not in ALLOWED_TRANSITIONS[ticket.status]:
-            raise ValueError("Invalid status transition")
-
-        ticket.status = status
-
-        try:
-            self._session.commit()
-            return ticket
-        except Exception:
-            self._session.rollback()
-            raise
-
-

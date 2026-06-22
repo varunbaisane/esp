@@ -13,6 +13,12 @@ class TicketStatus(str, Enum):
     RESOLVED = "RESOLVED"
     CLOSED = "CLOSED"
 
+class TicketPriority(str, Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
 
 class Ticket(Base):
     __tablename__ = "tickets"
@@ -24,6 +30,11 @@ class Ticket(Base):
         SQLAlchemyEnum(TicketStatus),
         nullable=False,
         default=TicketStatus.OPEN,
+    )
+    priority: Mapped[TicketPriority] = mapped_column(
+        SQLAlchemyEnum(TicketPriority),
+        nullable=False,
+        default=TicketPriority.MEDIUM,
     )
     
     created_by_id: Mapped[int] = mapped_column(
@@ -54,3 +65,16 @@ class Ticket(Base):
         foreign_keys=[created_by_id],
         back_populates="created_tickets",
     )
+    assigned_to: Mapped["User"] = relationship(  # noqa: F821
+        "User",
+        foreign_keys=[assigned_to_id],
+        back_populates="assigned_tickets",
+    )
+
+    @property
+    def created_by_name(self) -> str:
+        return self.creator.full_name if self.creator else ""
+
+    @property
+    def assigned_to_name(self) -> str | None:
+        return self.assigned_to.full_name if self.assigned_to else None

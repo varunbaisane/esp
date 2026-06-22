@@ -1,7 +1,7 @@
-import type { TicketSummary } from "../../types/ticket";
+import type { TicketRead } from "../../types/ticket";
 
 interface TicketMetadataProps {
-  ticket: TicketSummary;
+  ticket: TicketRead;
 }
 
 export const TicketMetadata = ({ ticket }: TicketMetadataProps) => {
@@ -21,14 +21,15 @@ export const TicketMetadata = ({ ticket }: TicketMetadataProps) => {
     minute: '2-digit'
   });
 
-  const assigneeText = ticket.assigned_to_id !== null ? `User #${ticket.assigned_to_id}` : "Unassigned";
+  const assigneeText = ticket.assigned_to_name ? `${ticket.assigned_to_name} (#${ticket.assigned_to_id})` : "Unassigned";
+  const creatorText = ticket.created_by_name ? `${ticket.created_by_name} (#${ticket.created_by_id})` : `User #${ticket.created_by_id}`;
 
   return (
     <div className="mt-8 border-t border-gray-200 pt-6">
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide">Created By</dt>
-          <dd className="mt-1 text-base text-gray-900">User #{ticket.created_by_id}</dd>
+          <dd className="mt-1 text-base text-gray-900">{creatorText}</dd>
         </div>
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide">Assigned To</dt>

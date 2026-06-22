@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { ticketService } from "../services/ticketService";
-import type { TicketSummary } from "../types/ticket";
+import type { TicketRead } from "../types/ticket";
 import { TicketDetail } from "../components/tickets/TicketDetail";
 import { TicketNotFound } from "../components/tickets/TicketNotFound";
 import { LoadingState } from "../components/common/LoadingState";
@@ -11,7 +11,7 @@ import { PageContainer } from "../components/layout/PageContainer";
 
 export const TicketDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [ticket, setTicket] = useState<TicketSummary | null>(null);
+  const [ticket, setTicket] = useState<TicketRead | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState<boolean>(false);
