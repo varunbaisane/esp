@@ -15,3 +15,9 @@ class TokenResponse(BaseModel):
 
 class TokenPayload(BaseModel):
     sub: str
+
+class CurrentUserResponse(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    roles: list[str]
