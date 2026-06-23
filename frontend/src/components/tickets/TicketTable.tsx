@@ -23,10 +23,13 @@ export const TicketTable = ({ tickets }: TicketTableProps) => {
               Title
             </th>
             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Status
+              Level
             </th>
             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Priority
+            </th>
+            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Status
             </th>
             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Assignee

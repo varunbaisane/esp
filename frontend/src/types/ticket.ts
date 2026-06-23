@@ -1,5 +1,6 @@
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+export type TicketLevel = "L1" | "L2" | "L3";
 export type TicketFilterStatus = "ALL" | TicketStatus;
 
 export interface TicketStats {
@@ -15,6 +16,7 @@ export interface TicketSummary {
   title: string;
   status: TicketStatus;
   priority: TicketPriority;
+  support_level: TicketLevel;
   created_by_id: number;
   assigned_to_id: number | null;
   created_at: string;
@@ -26,6 +28,7 @@ export interface TicketRead {
   description: string;
   status: TicketStatus;
   priority: TicketPriority;
+  support_level: TicketLevel;
   created_by_id: number;
   created_by_name: string;
   assigned_to_id: number | null;

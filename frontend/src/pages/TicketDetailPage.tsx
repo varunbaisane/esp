@@ -72,6 +72,19 @@ export const TicketDetailPage = () => {
                 }
               }
             }}
+            onEscalate={async () => {
+              try {
+                const escalatedTicket = await ticketService.escalateTicket(ticket.id);
+                setTicket(escalatedTicket);
+                setError(null);
+              } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                  setError(err.response?.data?.detail || "Failed to escalate ticket.");
+                } else {
+                  setError("Failed to escalate ticket.");
+                }
+              }
+            }}
           />
         )}
       </div>

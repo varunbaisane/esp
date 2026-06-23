@@ -25,5 +25,10 @@ export const ticketService = {
   updateTicket: async (id: number, data: TicketUpdate): Promise<TicketRead> => {
     const response = await apiClient.patch<TicketRead>(`/tickets/${id}`, data);
     return response.data;
+  },
+
+  escalateTicket: async (id: number): Promise<TicketRead> => {
+    const response = await apiClient.post<TicketRead>(`/tickets/${id}/escalate`);
+    return response.data;
   }
 };

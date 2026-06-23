@@ -5,7 +5,8 @@ from app.repositories.ticket_repository import TicketRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.ticket import TicketCreate, TicketUpdate
 from app.domain.ticket_workflow import can_transition
-from app.exceptions.ticket import InvalidTicketTransitionError
+from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalationError
+from app.domain.ticket_escalation import get_next_level
 
 
 class TicketService:
@@ -78,6 +79,24 @@ class TicketService:
             if not user:
                 raise ValueError("Assignee not found")
             ticket.assigned_to_id = update_data.assigned_to_id
+
+        try:
+            self._session.commit()
+            return ticket
+        except Exception:
+            self._session.rollback()
+            raise
+
+    def escalate(self, ticket_id: int) -> Ticket:
+        ticket = self._repository.get_by_id(ticket_id)
+        if not ticket:
+            raise ValueError("Ticket not found")
+
+        next_level = get_next_level(ticket.support_level)
+        if not next_level:
+            raise InvalidEscalationError("Ticket cannot be escalated further")
+
+        ticket.support_level = next_level
 
         try:
             self._session.commit()

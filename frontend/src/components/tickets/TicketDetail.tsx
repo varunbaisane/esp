@@ -1,6 +1,7 @@
 import type { TicketRead, TicketUpdate, TicketStatus } from "../../types/ticket";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import { TicketPriorityBadge } from "./TicketPriorityBadge";
+import { TicketLevelBadge } from "./TicketLevelBadge";
 import { TicketMetadata } from "./TicketMetadata";
 import { Card } from "../common/Card";
 import { getValidNextStates } from "../../utils/ticketWorkflow";
@@ -8,10 +9,12 @@ import { getValidNextStates } from "../../utils/ticketWorkflow";
 interface TicketDetailProps {
   ticket: TicketRead;
   onUpdate: (data: TicketUpdate) => Promise<void>;
+  onEscalate: () => Promise<void>;
 }
 
-export const TicketDetail = ({ ticket, onUpdate }: TicketDetailProps) => {
+export const TicketDetail = ({ ticket, onUpdate, onEscalate }: TicketDetailProps) => {
   const validNextStates = getValidNextStates(ticket.status);
+  const canEscalate = ticket.support_level === "L1" || ticket.support_level === "L2";
   return (
     <div className="space-y-6">
       <Card>
@@ -24,6 +27,7 @@ export const TicketDetail = ({ ticket, onUpdate }: TicketDetailProps) => {
               <span className="text-sm font-semibold text-gray-400">
                 Ticket #{ticket.id}
               </span>
+              <TicketLevelBadge level={ticket.support_level} />
               <TicketStatusBadge status={ticket.status} />
               <TicketPriorityBadge priority={ticket.priority} />
             </div>
@@ -47,6 +51,24 @@ export const TicketDetail = ({ ticket, onUpdate }: TicketDetailProps) => {
                   </button>
                 );
               })}
+              {canEscalate && (
+                <button
+                  onClick={onEscalate}
+                  className="px-4 py-2 text-sm font-semibold rounded-md border transition-all bg-amber-600 hover:bg-amber-700 text-white shadow-sm border-transparent"
+                >
+                  Escalate ↑
+                </button>
+              )}
+            </div>
+          )}
+          {validNextStates.length === 0 && canEscalate && (
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <button
+                onClick={onEscalate}
+                className="px-4 py-2 text-sm font-semibold rounded-md border transition-all bg-amber-600 hover:bg-amber-700 text-white shadow-sm border-transparent"
+              >
+                Escalate ↑
+              </button>
             </div>
           )}
         </div>

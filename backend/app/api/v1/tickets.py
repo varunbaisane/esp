@@ -6,7 +6,7 @@ from app.models.ticket import TicketStatus
 from app.models.user import User
 from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketUpdate, TicketStats
 from app.services.ticket_service import TicketService
-from app.exceptions.ticket import InvalidTicketTransitionError
+from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalationError
 
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
@@ -73,6 +73,28 @@ def update_ticket(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(e),
             )
+
+@router.post(
+    "/{ticket_id}/escalate",
+    response_model=TicketRead,
+)
+def escalate_ticket(
+    ticket_id: int,
+    service: TicketService = Depends(get_ticket_service),
+    _: User = Depends(get_current_user),
+) -> TicketRead:
+    try:
+        return service.escalate(ticket_id)
+    except InvalidEscalationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
 
 
 @router.get(

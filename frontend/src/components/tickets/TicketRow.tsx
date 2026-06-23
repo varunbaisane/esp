@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import type { TicketSummary } from "../../types/ticket";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import { TicketPriorityBadge } from "./TicketPriorityBadge";
+import { TicketLevelBadge } from "./TicketLevelBadge";
 
 interface TicketRowProps {
   ticket: TicketSummary;
@@ -32,11 +33,15 @@ export const TicketRow = ({ ticket }: TicketRowProps) => {
         {ticket.title}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        <TicketStatusBadge status={ticket.status} />
+        <TicketLevelBadge level={ticket.support_level} />
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <TicketPriorityBadge priority={ticket.priority} />
       </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        <TicketStatusBadge status={ticket.status} />
+      </td>
+
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <span className={ticket.assigned_to_id ? "text-gray-900" : "text-gray-400 italic"}>
           {assigneeText}

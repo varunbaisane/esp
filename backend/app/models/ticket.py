@@ -19,6 +19,11 @@ class TicketPriority(str, Enum):
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
 
+class TicketLevel(str, Enum):
+    L1 = "L1"
+    L2 = "L2"
+    L3 = "L3"
+
 
 class Ticket(Base):
     __tablename__ = "tickets"
@@ -35,6 +40,11 @@ class Ticket(Base):
         SQLAlchemyEnum(TicketPriority),
         nullable=False,
         default=TicketPriority.MEDIUM,
+    )
+    support_level: Mapped[TicketLevel] = mapped_column(
+        SQLAlchemyEnum(TicketLevel),
+        nullable=False,
+        default=TicketLevel.L1,
     )
     
     created_by_id: Mapped[int] = mapped_column(
