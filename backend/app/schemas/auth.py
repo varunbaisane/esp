@@ -1,12 +1,12 @@
-from pydantic import BaseModel, EmailStr  # pyright: ignore[reportMissingImports]
+from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
 
 class RegisterRequest(BaseModel):
     full_name: str
-    email: EmailStr
+    email: str
     password: str
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 class TokenResponse(BaseModel):
