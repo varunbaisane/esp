@@ -4,9 +4,11 @@ from app.api.deps import get_ticket_service
 from app.api.deps.auth import get_current_user
 from app.models.ticket import TicketStatus
 from app.models.user import User
+from app.models.user import User
 from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketUpdate, TicketStats
 from app.services.ticket_service import TicketService
 from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalationError
+from app.exceptions.auth import InsufficientPermissionsError
 
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
@@ -56,7 +58,7 @@ def update_ticket(
     current_user: User = Depends(get_current_user),
 ) -> TicketRead:
     try:
-        return service.update(ticket_id, update_data, current_user.id)
+        return service.update(ticket_id, update_data, current_user)
     except InvalidTicketTransitionError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -84,7 +86,12 @@ def escalate_ticket(
     current_user: User = Depends(get_current_user),
 ) -> TicketRead:
     try:
-        return service.escalate(ticket_id, current_user.id)
+        return service.escalate(ticket_id, current_user)
+    except InsufficientPermissionsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
     except InvalidEscalationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

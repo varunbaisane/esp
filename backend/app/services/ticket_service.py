@@ -70,14 +70,10 @@ class TicketService:
         return self._repository.get_stats()
 
 
-    def update(self, ticket_id: int, update_data: TicketUpdate, actor_id: int) -> Ticket:
+    def update(self, ticket_id: int, update_data: TicketUpdate, actor: User) -> Ticket:
         ticket = self._repository.get_by_id(ticket_id)
         if not ticket:
             raise ValueError("Ticket not found")
-            
-        actor = self._user_repository.get_by_id(actor_id)
-        if not actor:
-            raise ValueError("Actor not found")
 
         old_status = ticket.status.value
         if update_data.status is not None and update_data.status != ticket.status:
@@ -106,14 +102,16 @@ class TicketService:
             self._session.rollback()
             raise
 
-    def escalate(self, ticket_id: int, actor_id: int) -> Ticket:
+    def escalate(self, ticket_id: int, actor: User) -> Ticket:
+        from app.domain.permissions import can_escalate
+        from app.exceptions.auth import InsufficientPermissionsError
+
         ticket = self._repository.get_by_id(ticket_id)
         if not ticket:
             raise ValueError("Ticket not found")
             
-        actor = self._user_repository.get_by_id(actor_id)
-        if not actor:
-            raise ValueError("Actor not found")
+        if not can_escalate(actor, ticket.support_level):
+            raise InsufficientPermissionsError("User does not have permission to escalate this ticket")
 
         next_level = get_next_level(ticket.support_level)
         if not next_level:

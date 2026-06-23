@@ -8,6 +8,8 @@ class UserCreate(BaseModel):
     full_name: str
 
 
+from app.schemas.role import RoleRead
+
 class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -17,3 +19,4 @@ class UserRead(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    roles: list[RoleRead] = []

@@ -13,3 +13,7 @@ class InvalidTokenError(Exception):
 class TokenExpiredError(Exception):
     """Raised when the provided JWT has expired."""
     pass
+
+class InsufficientPermissionsError(Exception):
+    """Raised when the user does not have the required permissions for an action."""
+    pass

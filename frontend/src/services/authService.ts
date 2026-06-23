@@ -11,4 +11,9 @@ export const authService = {
     const response = await apiClient.post<TokenResponse>("/auth/login", data);
     return response.data;
   },
+
+  me: async () => {
+    const response = await apiClient.get("/auth/me");
+    return response.data;
+  },
 };

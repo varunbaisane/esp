@@ -1,4 +1,5 @@
 import type { TicketRead, TicketUpdate, TicketStatus } from "../../types/ticket";
+import type { CurrentUser } from "../../types/auth";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import { TicketPriorityBadge } from "./TicketPriorityBadge";
 import { TicketLevelBadge } from "./TicketLevelBadge";
@@ -7,17 +8,19 @@ import { TicketMetadata } from "./TicketMetadata";
 import { Card } from "../common/Card";
 import { ConfirmationModal } from "../common/ConfirmationModal";
 import { getValidNextStates } from "../../utils/ticketWorkflow";
+import { canEscalateTicket } from "../../utils/permissions";
 
 interface TicketDetailProps {
   ticket: TicketRead;
+  currentUser: CurrentUser | null;
   onUpdate: (data: TicketUpdate) => Promise<void>;
   onEscalate: () => Promise<void>;
 }
 
-export const TicketDetail = ({ ticket, onUpdate, onEscalate }: TicketDetailProps) => {
+export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate }: TicketDetailProps) => {
   const [isEscalationModalOpen, setIsEscalationModalOpen] = useState(false);
   const validNextStates = getValidNextStates(ticket.status);
-  const canEscalate = ticket.support_level === "L1" || ticket.support_level === "L2";
+  const canEscalate = canEscalateTicket(currentUser, ticket.support_level);
   const nextLevel = ticket.support_level === "L1" ? "L2" : "L3";
 
   const handleEscalateConfirm = async () => {
@@ -27,33 +30,35 @@ export const TicketDetail = ({ ticket, onUpdate, onEscalate }: TicketDetailProps
 
   return (
     <div className="space-y-6">
-      <ConfirmationModal
-        isOpen={isEscalationModalOpen}
-        title="Escalate Ticket"
-        description={
-          <div className="flex flex-col gap-4 mt-2">
-            <div className="text-gray-900 font-medium text-base">
-              {ticket.title}
-            </div>
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
-              <div>
-                <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Current Level</span>
-                <span className="text-gray-900 font-semibold">{ticket.support_level}</span>
+      {canEscalate && (
+        <ConfirmationModal
+          isOpen={isEscalationModalOpen}
+          title="Escalate Ticket"
+          description={
+            <div className="flex flex-col gap-4 mt-2">
+              <div className="text-gray-900 font-medium text-base">
+                {ticket.title}
               </div>
-              <div>
-                <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Next Level</span>
-                <span className="text-amber-600 font-bold">{nextLevel}</span>
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div>
+                  <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Current Level</span>
+                  <span className="text-gray-900 font-semibold">{ticket.support_level}</span>
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Next Level</span>
+                  <span className="text-amber-600 font-bold">{nextLevel}</span>
+                </div>
               </div>
+              <p className="text-gray-600 mt-1">
+                This action transfers ownership to the next support tier.
+              </p>
             </div>
-            <p className="text-gray-600 mt-1">
-              This action transfers ownership to the next support tier.
-            </p>
-          </div>
-        }
-        confirmText={`Escalate to ${nextLevel}`}
-        onConfirm={handleEscalateConfirm}
-        onCancel={() => setIsEscalationModalOpen(false)}
-      />
+          }
+          confirmText={`Escalate to ${nextLevel}`}
+          onConfirm={handleEscalateConfirm}
+          onCancel={() => setIsEscalationModalOpen(false)}
+        />
+      )}
       <Card>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="flex flex-col gap-1">

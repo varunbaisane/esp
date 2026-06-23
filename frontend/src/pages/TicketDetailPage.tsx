@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { ticketService } from "../services/ticketService";
@@ -9,8 +9,11 @@ import { TicketNotFound } from "../components/tickets/TicketNotFound";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 import { PageContainer } from "../components/layout/PageContainer";
+import { AuthContext } from "../context/AuthContext";
 
 export const TicketDetailPage = () => {
+  const authContext = useContext(AuthContext);
+  const currentUser = authContext?.currentUser || null;
   const { id } = useParams<{ id: string }>();
   const [ticket, setTicket] = useState<TicketRead | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -60,6 +63,7 @@ export const TicketDetailPage = () => {
         {!loading && !error && !notFound && ticket && (
           <TicketDetail 
             ticket={ticket} 
+            currentUser={currentUser}
             onUpdate={async (updateData) => {
               try {
                 const updatedTicket = await ticketService.updateTicket(ticket.id, updateData);

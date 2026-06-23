@@ -16,8 +16,16 @@ export interface TokenResponse {
   token_type: string;
 }
 
+export interface CurrentUser {
+  id: number;
+  email: string;
+  full_name: string;
+  roles: string[];
+}
+
 export interface AuthState {
   token: string | null;
+  currentUser: CurrentUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
