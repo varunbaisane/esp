@@ -53,10 +53,10 @@ def update_ticket(
     ticket_id: int,
     update_data: TicketUpdate,
     service: TicketService = Depends(get_ticket_service),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> TicketRead:
     try:
-        return service.update(ticket_id, update_data)
+        return service.update(ticket_id, update_data, current_user.id)
     except InvalidTicketTransitionError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -81,10 +81,10 @@ def update_ticket(
 def escalate_ticket(
     ticket_id: int,
     service: TicketService = Depends(get_ticket_service),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> TicketRead:
     try:
-        return service.escalate(ticket_id)
+        return service.escalate(ticket_id, current_user.id)
     except InvalidEscalationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

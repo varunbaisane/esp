@@ -4,6 +4,7 @@ import axios from "axios";
 import { ticketService } from "../services/ticketService";
 import type { TicketRead } from "../types/ticket";
 import { TicketDetail } from "../components/tickets/TicketDetail";
+import { AuditTimeline } from "../components/tickets/AuditTimeline";
 import { TicketNotFound } from "../components/tickets/TicketNotFound";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
@@ -86,6 +87,11 @@ export const TicketDetailPage = () => {
               }
             }}
           />
+        )}
+        {!loading && !error && !notFound && ticket && (
+          <div className="mt-8">
+            <AuditTimeline key={ticket.updated_at} ticketId={ticket.id} />
+          </div>
         )}
       </div>
     </PageContainer>

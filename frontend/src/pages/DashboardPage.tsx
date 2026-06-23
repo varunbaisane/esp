@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ticketService } from "../services/ticketService";
 import type { TicketStats } from "../types/ticket";
 import { StatsGrid } from "../components/dashboard/StatsGrid";
+import { RecentActivityCard } from "../components/dashboard/RecentActivityCard";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 import { PageContainer } from "../components/layout/PageContainer";
@@ -52,6 +53,10 @@ export const DashboardPage = () => {
       </div>
 
       <StatsGrid stats={ticketStats} />
+      
+      <div className="mt-8">
+        <RecentActivityCard />
+      </div>
     </PageContainer>
   );
 };
