@@ -3,6 +3,7 @@ import type { TicketSummary } from "../../types/ticket";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import { TicketPriorityBadge } from "./TicketPriorityBadge";
 import { TicketLevelBadge } from "./TicketLevelBadge";
+import { TicketSLABadge } from "./TicketSLABadge";
 
 interface TicketRowProps {
   ticket: TicketSummary;
@@ -37,6 +38,9 @@ export const TicketRow = ({ ticket }: TicketRowProps) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <TicketPriorityBadge priority={ticket.priority} />
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        <TicketSLABadge status={ticket.sla_status} />
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <TicketStatusBadge status={ticket.status} />

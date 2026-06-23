@@ -1,14 +1,14 @@
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type TicketLevel = "L1" | "L2" | "L3";
+export type SLAStatus = "HEALTHY" | "AT_RISK" | "BREACHED";
 export type TicketFilterStatus = "ALL" | TicketStatus;
 
 export interface TicketStats {
-  open: number;
-  in_progress: number;
-  resolved: number;
-  closed: number;
-  total: number;
+  open_tickets: number;
+  breached_tickets: number;
+  high_priority_tickets: number;
+  critical_tickets: number;
 }
 
 export interface TicketSummary {
@@ -20,6 +20,9 @@ export interface TicketSummary {
   created_by_id: number;
   assigned_to_id: number | null;
   created_at: string;
+  sla_due_at: string;
+  is_sla_breached: boolean;
+  sla_status: SLAStatus;
 }
 
 export interface TicketRead {
@@ -35,6 +38,9 @@ export interface TicketRead {
   assigned_to_name: string | null;
   created_at: string;
   updated_at: string;
+  sla_due_at: string;
+  is_sla_breached: boolean;
+  sla_status: SLAStatus;
 }
 
 export interface TicketCreate {

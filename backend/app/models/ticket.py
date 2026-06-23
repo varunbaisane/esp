@@ -63,6 +63,10 @@ class Ticket(Base):
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )
+    sla_due_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

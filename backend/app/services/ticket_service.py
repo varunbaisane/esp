@@ -7,6 +7,7 @@ from app.schemas.ticket import TicketCreate, TicketUpdate
 from app.domain.ticket_workflow import can_transition
 from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalationError
 from app.domain.ticket_escalation import get_next_level
+from app.domain.ticket_sla import calculate_sla_due
 
 
 class TicketService:
@@ -20,12 +21,17 @@ class TicketService:
         if not user:
             raise ValueError("User not found")
 
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        
         ticket = Ticket(
             title=ticket_data.title,
             description=ticket_data.description,
             priority=ticket_data.priority,
             created_by_id=user_id,
             status=TicketStatus.OPEN,
+            created_at=now,
+            sla_due_at=calculate_sla_due(ticket_data.priority, now)
         )
 
         try:
@@ -58,7 +64,7 @@ class TicketService:
         return self._repository.list_by_status(status)
 
     def get_stats(self) -> dict[str, int]:
-        return self._repository.get_status_counts()
+        return self._repository.get_stats()
 
 
     def update(self, ticket_id: int, update_data: TicketUpdate) -> Ticket:

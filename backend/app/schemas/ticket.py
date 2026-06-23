@@ -1,7 +1,13 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict  # pyrefly: ignore [missing-import]
+from datetime import datetime, timezone
+from enum import Enum
+from pydantic import BaseModel, ConfigDict, Field, computed_field  # pyrefly: ignore [missing-import]
 
 from app.models.ticket import TicketStatus, TicketPriority, TicketLevel
+
+class SLAStatus(str, Enum):
+    HEALTHY = "HEALTHY"
+    AT_RISK = "AT_RISK"
+    BREACHED = "BREACHED"
 
 class TicketCreate(BaseModel):
     title: str
@@ -23,11 +29,10 @@ class TicketStatusUpdate(BaseModel):
 
 
 class TicketStats(BaseModel):
-    open: int
-    in_progress: int
-    resolved: int
-    closed: int
-    total: int
+    open_tickets: int
+    breached_tickets: int
+    high_priority_tickets: int
+    critical_tickets: int
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -42,6 +47,33 @@ class TicketSummary(BaseModel):
     created_by_id: int
     assigned_to_id: int | None
     created_at: datetime
+    sla_due_at: datetime
+
+    @computed_field
+    @property
+    def is_sla_breached(self) -> bool:
+        if self.status in [TicketStatus.RESOLVED, TicketStatus.CLOSED]:
+            return False
+        return datetime.now(timezone.utc) > self.sla_due_at
+
+    @computed_field
+    @property
+    def sla_status(self) -> SLAStatus:
+        if self.status in [TicketStatus.RESOLVED, TicketStatus.CLOSED]:
+            return SLAStatus.HEALTHY
+            
+        now = datetime.now(timezone.utc)
+        if now > self.sla_due_at:
+            return SLAStatus.BREACHED
+            
+        remaining = self.sla_due_at - now
+        duration = self.sla_due_at - self.created_at
+        
+        if duration.total_seconds() > 0:
+            if (remaining.total_seconds() / duration.total_seconds()) <= 0.25:
+                return SLAStatus.AT_RISK
+                
+        return SLAStatus.HEALTHY
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -59,5 +91,31 @@ class TicketRead(BaseModel):
     assigned_to_name: str | None
     created_at: datetime
     updated_at: datetime
+    sla_due_at: datetime
+
+    @computed_field
+    @property
+    def is_sla_breached(self) -> bool:
+        if self.status in [TicketStatus.RESOLVED, TicketStatus.CLOSED]:
+            return False
+        return datetime.now(timezone.utc) > self.sla_due_at
+
+    @computed_field
+    @property
+    def sla_status(self) -> SLAStatus:
+        if self.status in [TicketStatus.RESOLVED, TicketStatus.CLOSED]:
+            return SLAStatus.HEALTHY
+            
+        now = datetime.now(timezone.utc)
+        if now > self.sla_due_at:
+            return SLAStatus.BREACHED
+            
+        remaining = self.sla_due_at - now
+        duration = self.sla_due_at - self.created_at
+        if duration.total_seconds() > 0:
+            if (remaining.total_seconds() / duration.total_seconds()) <= 0.25:
+                return SLAStatus.AT_RISK
+                
+        return SLAStatus.HEALTHY
 
     model_config = ConfigDict(from_attributes=True)
