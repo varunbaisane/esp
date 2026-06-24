@@ -74,6 +74,10 @@ class Ticket(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    closed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     creator: Mapped["User"] = relationship(  # noqa: F821
         "User",

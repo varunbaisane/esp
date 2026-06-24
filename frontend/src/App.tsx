@@ -6,6 +6,7 @@ import { TicketsPage } from "./pages/TicketsPage";
 import { CreateTicketPage } from "./pages/CreateTicketPage";
 import { TicketDetailPage } from "./pages/TicketDetailPage";
 import { ActivityPage } from "./pages/ActivityPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { AppLayout } from "./components/layout/AppLayout";
@@ -32,6 +33,7 @@ function App() {
                   <Route path="/tickets/new" element={<CreateTicketPage />} />
                   <Route path="/tickets/:id" element={<TicketDetailPage />} />
                   <Route path="/activity" element={<ActivityPage />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
                 </Routes>
               </AppLayout>
             </ProtectedRoute>

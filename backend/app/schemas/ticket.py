@@ -51,6 +51,7 @@ class TicketSummary(BaseModel):
     assigned_to_name: str | None
     created_at: datetime
     sla_due_at: datetime
+    closed_at: datetime | None = None
 
     @computed_field
     @property
@@ -144,6 +145,7 @@ class TicketRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     sla_due_at: datetime
+    closed_at: datetime | None = None
 
     @computed_field
     @property
@@ -171,3 +173,38 @@ class TicketRead(BaseModel):
         return SLAStatus.HEALTHY
 
     model_config = ConfigDict(from_attributes=True)
+
+class TicketDistributionStats(BaseModel):
+    by_status: dict[str, int]
+    by_priority: dict[str, int]
+    by_level: dict[str, int]
+
+class SLAAnalytics(BaseModel):
+    total_active: int
+    breached: int
+    healthy: int
+    at_risk: int
+    sla_compliance_percent: float
+
+class ResolutionAnalytics(BaseModel):
+    average_resolution_hours: float | None
+
+class EscalationAnalytics(BaseModel):
+    total_escalations: int
+    l1_to_l2: int
+    l2_to_l3: int
+    avg_escalations_per_ticket: float
+
+class WorkloadAnalytics(BaseModel):
+    max_assigned: int
+    avg_assigned: float
+    unassigned: int
+    workload_distribution: dict[str, int]
+
+class AnalyticsResponse(BaseModel):
+    distribution: TicketDistributionStats
+    sla: SLAAnalytics
+    resolution: ResolutionAnalytics
+    escalation: EscalationAnalytics
+    workload: WorkloadAnalytics
+    open_vs_closed_ratio: float

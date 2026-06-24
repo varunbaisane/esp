@@ -158,6 +158,14 @@ class TicketService:
             if not can_transition(ticket.status, update_data.status):
                 raise InvalidTicketTransitionError(f"Cannot transition from {ticket.status.value} to {update_data.status.value}")
             ticket.status = update_data.status
+            
+            if update_data.status in (TicketStatus.RESOLVED, TicketStatus.CLOSED):
+                from datetime import datetime, timezone
+                if not ticket.closed_at:
+                    ticket.closed_at = datetime.now(timezone.utc)
+            else:
+                ticket.closed_at = None
+
             self._audit_service.log_ticket_status_changed(actor, ticket, old_status, update_data.status.value)
             
         if update_data.priority is not None:

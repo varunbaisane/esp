@@ -310,3 +310,155 @@ class TicketRepository:
             })
             
         return workloads
+
+    def get_ticket_distribution_stats(self) -> dict:
+        by_status = dict(self._session.execute(
+            select(Ticket.status, func.count(Ticket.id)).group_by(Ticket.status)
+        ).all())
+        by_priority = dict(self._session.execute(
+            select(Ticket.priority, func.count(Ticket.id)).group_by(Ticket.priority)
+        ).all())
+        by_level = dict(self._session.execute(
+            select(Ticket.support_level, func.count(Ticket.id)).group_by(Ticket.support_level)
+        ).all())
+
+        return {
+            "by_status": {k.value: v for k, v in by_status.items()},
+            "by_priority": {k.value: v for k, v in by_priority.items()},
+            "by_level": {k.value: v for k, v in by_level.items()},
+        }
+
+    def get_sla_analytics(self) -> dict:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        
+        active_tickets = self._session.execute(
+            select(Ticket.id, Ticket.sla_due_at, Ticket.created_at)
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+        ).all()
+        
+        total_active = len(active_tickets)
+        breached = 0
+        healthy = 0
+        at_risk = 0
+        
+        for t_id, sla_due, created in active_tickets:
+            if sla_due < now:
+                breached += 1
+            else:
+                remaining = (sla_due - now).total_seconds()
+                duration = (sla_due - created).total_seconds()
+                if duration > 0 and (remaining / duration) <= 0.25:
+                    at_risk += 1
+                else:
+                    healthy += 1
+
+        total_tickets = self._session.execute(select(func.count(Ticket.id))).scalar() or 0
+        all_tickets = self._session.execute(
+            select(Ticket.status, Ticket.sla_due_at, Ticket.closed_at)
+        ).all()
+        
+        compliant_count = 0
+        for status, sla_due, closed in all_tickets:
+            if status in (TicketStatus.RESOLVED, TicketStatus.CLOSED):
+                if closed and closed <= sla_due:
+                    compliant_count += 1
+            else:
+                if sla_due >= now:
+                    compliant_count += 1
+        
+        sla_compliance_percent = round((compliant_count / max(1, total_tickets)) * 100, 1)
+
+        return {
+            "total_active": total_active,
+            "breached": breached,
+            "healthy": healthy,
+            "at_risk": at_risk,
+            "sla_compliance_percent": sla_compliance_percent,
+        }
+
+    def get_resolution_analytics(self) -> dict:
+        closed_tickets = self._session.execute(
+            select(Ticket.created_at, Ticket.closed_at)
+            .where(Ticket.status.in_([TicketStatus.RESOLVED, TicketStatus.CLOSED]))
+            .where(Ticket.closed_at.is_not(None))
+        ).all()
+        
+        if not closed_tickets:
+            return {"average_resolution_hours": None}
+            
+        total_hours = 0
+        for created, closed in closed_tickets:
+            total_hours += (closed - created).total_seconds() / 3600.0
+            
+        avg = round(total_hours / len(closed_tickets), 1)
+        return {"average_resolution_hours": avg}
+
+    def get_escalation_analytics(self) -> dict:
+        from app.models.audit_log import AuditLog
+        
+        escalations = self._session.execute(
+            select(AuditLog.event_metadata)
+            .where(AuditLog.action == "TICKET_ESCALATED")
+        ).scalars().all()
+        
+        total = len(escalations)
+        l1_to_l2 = 0
+        l2_to_l3 = 0
+        
+        for meta in escalations:
+            if not meta:
+                continue
+            if meta.get("from_level") == "L1" and meta.get("to_level") == "L2":
+                l1_to_l2 += 1
+            elif meta.get("from_level") == "L2" and meta.get("to_level") == "L3":
+                l2_to_l3 += 1
+                
+        total_tickets = self._session.execute(select(func.count(Ticket.id))).scalar() or 0
+        avg_per_ticket = round(total / max(1, total_tickets), 1)
+        
+        return {
+            "total_escalations": total,
+            "l1_to_l2": l1_to_l2,
+            "l2_to_l3": l2_to_l3,
+            "avg_escalations_per_ticket": avg_per_ticket,
+        }
+
+    def get_workload_analytics(self) -> dict:
+        workloads = self.get_engineer_workloads()
+        if not workloads:
+            return {
+                "max_assigned": 0,
+                "avg_assigned": 0.0,
+                "unassigned": 0,
+                "workload_distribution": {}
+            }
+            
+        assigned_counts = [w["assigned_tickets"] for w in workloads]
+        max_assigned = max(assigned_counts)
+        avg_assigned = round(sum(assigned_counts) / len(assigned_counts), 1)
+        
+        unassigned = self._session.execute(
+            select(func.count(Ticket.id))
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            .where(Ticket.assigned_to_id.is_(None))
+        ).scalar() or 0
+        
+        distribution = {w["full_name"]: w["assigned_tickets"] for w in workloads}
+        
+        return {
+            "max_assigned": max_assigned,
+            "avg_assigned": avg_assigned,
+            "unassigned": unassigned,
+            "workload_distribution": distribution,
+        }
+
+    def get_open_vs_closed_ratio(self) -> float:
+        total_tickets = self._session.execute(select(func.count(Ticket.id))).scalar() or 0
+        open_tickets = self._session.execute(
+            select(func.count(Ticket.id))
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+        ).scalar() or 0
+        
+        closed_tickets = total_tickets - open_tickets
+        return round(open_tickets / closed_tickets, 2) if closed_tickets > 0 else float(open_tickets)
