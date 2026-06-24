@@ -13,7 +13,7 @@ export const TicketRow = ({ ticket }: TicketRowProps) => {
   const navigate = useNavigate();
 
   // Determine assignee display text based on user requirements
-  const assigneeText = ticket.assigned_to_id !== null ? `User #${ticket.assigned_to_id}` : "Unassigned";
+  const assigneeText = ticket.assigned_to_name || "Unassigned";
 
   // Format date
   const createdDate = new Date(ticket.created_at).toLocaleDateString(undefined, {

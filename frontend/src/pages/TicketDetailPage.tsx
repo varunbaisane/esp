@@ -90,6 +90,34 @@ export const TicketDetailPage = () => {
                 }
               }
             }}
+            onClaim={async () => {
+              try {
+                const claimedTicket = await ticketService.claimTicket(ticket.id);
+                setTicket(claimedTicket);
+                setError(null);
+              } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                  setError(err.response?.data?.detail || "Failed to claim ticket.");
+                } else {
+                  setError("Failed to claim ticket.");
+                }
+                throw err;
+              }
+            }}
+            onAssign={async (assigneeId: number) => {
+              try {
+                const assignedTicket = await ticketService.assignTicket(ticket.id, assigneeId);
+                setTicket(assignedTicket);
+                setError(null);
+              } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                  setError(err.response?.data?.detail || "Failed to assign ticket.");
+                } else {
+                  setError("Failed to assign ticket.");
+                }
+                throw err;
+              }
+            }}
           />
         )}
         {!loading && !error && !notFound && ticket && (

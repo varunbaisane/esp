@@ -6,9 +6,15 @@ import { RecentActivityCard } from "../components/dashboard/RecentActivityCard";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 import { PageContainer } from "../components/layout/PageContainer";
+import type { TicketSummary } from "../types/ticket";
+import { AuthContext } from "../context/AuthContext";
+import { useContext } from "react";
 
 export const DashboardPage = () => {
+  const authContext = useContext(AuthContext);
+  const currentUser = authContext?.currentUser || null;
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
+  const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,8 +23,12 @@ export const DashboardPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const stats = await ticketService.getStats();
+        const [stats, allTickets] = await Promise.all([
+          ticketService.getStats(),
+          ticketService.getTickets()
+        ]);
         setTicketStats(stats);
+        setTickets(allTickets);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message || "Unable to connect to backend.");
@@ -53,6 +63,38 @@ export const DashboardPage = () => {
       </div>
 
       <StatsGrid stats={ticketStats} />
+      
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-bold text-gray-500 uppercase tracking-wide truncate">My Assigned Tickets</dt>
+                  <dd className="mt-2 text-3xl font-black text-indigo-600">
+                    {tickets.filter(t => t.assigned_to_id === currentUser?.id && t.status !== "RESOLVED" && t.status !== "CLOSED").length}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-bold text-gray-500 uppercase tracking-wide truncate">Unassigned Tickets</dt>
+                  <dd className="mt-2 text-3xl font-black text-amber-500">
+                    {tickets.filter(t => t.assigned_to_id === null && t.status !== "RESOLVED" && t.status !== "CLOSED").length}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <div className="mt-8">
         <RecentActivityCard />

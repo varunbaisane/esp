@@ -102,6 +102,63 @@ class TicketService:
             self._session.rollback()
             raise
 
+    def claim_ticket(self, ticket_id: int, actor: User) -> Ticket:
+        from app.exceptions.ticket import TicketAlreadyAssignedError
+        from app.domain.permissions import can_claim_ticket
+        from app.exceptions.auth import InsufficientPermissionsError
+
+        ticket = self._repository.get_by_id(ticket_id)
+        if not ticket:
+            raise ValueError("Ticket not found")
+        
+        if ticket.assigned_to_id is not None:
+            raise TicketAlreadyAssignedError("Ticket is already assigned")
+            
+        if not can_claim_ticket(actor, ticket):
+            raise InsufficientPermissionsError("User does not have permission to claim this ticket")
+            
+        ticket.assigned_to_id = actor.id
+        self._audit_service.log_ticket_claimed(actor, ticket)
+        
+        try:
+            self._session.commit()
+            return ticket
+        except Exception:
+            self._session.rollback()
+            raise
+
+    def assign_ticket(self, ticket_id: int, assignee_id: int, actor: User) -> Ticket:
+        from app.domain.permissions import can_assign_ticket
+        from app.exceptions.ticket import InvalidAssignmentError
+        from app.exceptions.auth import InsufficientPermissionsError
+
+        ticket = self._repository.get_by_id(ticket_id)
+        if not ticket:
+            raise ValueError("Ticket not found")
+            
+        target_user = self._user_repository.get_by_id(assignee_id)
+        if not target_user:
+            raise ValueError("Assignee not found")
+            
+        if not can_assign_ticket(actor, ticket, target_user):
+            raise InsufficientPermissionsError("User does not have permission to assign this ticket to this user")
+            
+        old_assignee_id = ticket.assigned_to_id
+        old_assignee_name = ticket.assigned_to_name
+        
+        if old_assignee_id == assignee_id:
+            return ticket # No-op
+            
+        ticket.assigned_to_id = assignee_id
+        self._audit_service.log_ticket_reassigned(actor, ticket, old_assignee_name, target_user.full_name)
+        
+        try:
+            self._session.commit()
+            return ticket
+        except Exception:
+            self._session.rollback()
+            raise
+
     def escalate(self, ticket_id: int, actor: User) -> Ticket:
         from app.domain.permissions import can_escalate
         from app.exceptions.auth import InsufficientPermissionsError
@@ -119,6 +176,7 @@ class TicketService:
 
         old_level = ticket.support_level.value
         ticket.support_level = next_level
+        ticket.assigned_to_id = None
         self._audit_service.log_ticket_escalated(actor, ticket, old_level, next_level.value)
 
         try:

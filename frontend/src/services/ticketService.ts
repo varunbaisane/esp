@@ -30,5 +30,17 @@ export const ticketService = {
   escalateTicket: async (id: number): Promise<TicketRead> => {
     const response = await apiClient.post<TicketRead>(`/tickets/${id}/escalate`);
     return response.data;
+  },
+
+  claimTicket: async (id: number): Promise<TicketRead> => {
+    const response = await apiClient.post<TicketRead>(`/tickets/${id}/claim`);
+    return response.data;
+  },
+
+  assignTicket: async (id: number, assigneeId: number): Promise<TicketRead> => {
+    const response = await apiClient.post<TicketRead>(`/tickets/${id}/assign`, {
+      assignee_id: assigneeId
+    });
+    return response.data;
   }
 };

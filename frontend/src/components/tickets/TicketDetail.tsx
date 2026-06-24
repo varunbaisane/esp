@@ -7,20 +7,26 @@ import { useState } from "react";
 import { TicketMetadata } from "./TicketMetadata";
 import { Card } from "../common/Card";
 import { ConfirmationModal } from "../common/ConfirmationModal";
+import { AssignTicketModal } from "../common/AssignTicketModal";
 import { getValidNextStates } from "../../utils/ticketWorkflow";
-import { canEscalateTicket } from "../../utils/permissions";
+import { canEscalateTicket, canAssignTicket, canClaimTicket } from "../../utils/permissions";
 
 interface TicketDetailProps {
   ticket: TicketRead;
   currentUser: CurrentUser | null;
   onUpdate: (data: TicketUpdate) => Promise<void>;
   onEscalate: () => Promise<void>;
+  onClaim: () => Promise<void>;
+  onAssign: (assigneeId: number) => Promise<void>;
 }
 
-export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate }: TicketDetailProps) => {
+export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate, onClaim, onAssign }: TicketDetailProps) => {
   const [isEscalationModalOpen, setIsEscalationModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const validNextStates = getValidNextStates(ticket.status);
   const canEscalate = canEscalateTicket(currentUser, ticket.support_level);
+  const canAssign = canAssignTicket(currentUser, ticket.support_level);
+  const canClaim = canClaimTicket(currentUser, ticket.support_level);
   const nextLevel = ticket.support_level === "L1" ? "L2" : "L3";
 
   const handleEscalateConfirm = async () => {
@@ -59,6 +65,12 @@ export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate }: Tick
           onCancel={() => setIsEscalationModalOpen(false)}
         />
       )}
+      <AssignTicketModal
+        isOpen={isAssignModalOpen}
+        ticketLevel={ticket.support_level}
+        onClose={() => setIsAssignModalOpen(false)}
+        onAssign={onAssign}
+      />
       <Card>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
@@ -72,6 +84,33 @@ export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate }: Tick
               <TicketLevelBadge level={ticket.support_level} />
               <TicketStatusBadge status={ticket.status} />
               <TicketPriorityBadge priority={ticket.priority} />
+            </div>
+            
+            <div className="flex items-center gap-3 mt-4 text-sm bg-gray-50 p-2.5 rounded-lg border border-gray-100 max-w-fit">
+              <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Assigned To:</span>
+              {ticket.assigned_to_name ? (
+                <span className="font-bold text-gray-900">{ticket.assigned_to_name}</span>
+              ) : (
+                <span className="font-bold text-gray-400 italic">Unassigned</span>
+              )}
+              
+              {!ticket.assigned_to_name && canClaim && (
+                <button
+                  onClick={onClaim}
+                  className="ml-2 px-3 py-1 text-xs font-bold rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm"
+                >
+                  Claim Ticket
+                </button>
+              )}
+              
+              {canAssign && (
+                <button
+                  onClick={() => setIsAssignModalOpen(true)}
+                  className="ml-2 px-3 py-1 text-xs font-bold rounded bg-white text-gray-700 hover:bg-gray-100 transition-colors border border-gray-300 shadow-sm"
+                >
+                  Assign Ticket
+                </button>
+              )}
             </div>
           </div>
 

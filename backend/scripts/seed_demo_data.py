@@ -25,8 +25,12 @@ USERS = [
     {"email": "admin@esp.local", "full_name": "Admin User", "role": "ADMIN"},
     {"email": "manager@esp.local", "full_name": "Engineering Manager", "role": "ENGINEERING_MANAGER"},
     {"email": "alice.l1@esp.local", "full_name": "Alice Johnson", "role": "SUPPORT_L1"},
+    {"email": "john.l1@esp.local", "full_name": "John Doe", "role": "SUPPORT_L1"},
+    {"email": "sarah.l1@esp.local", "full_name": "Sarah Connor", "role": "SUPPORT_L1"},
     {"email": "bob.l2@esp.local", "full_name": "Bob Smith", "role": "SUPPORT_L2"},
+    {"email": "mike.l2@esp.local", "full_name": "Mike Wazowski", "role": "SUPPORT_L2"},
     {"email": "charlie.l3@esp.local", "full_name": "Charlie Brown", "role": "SUPPORT_L3"},
+    {"email": "david.l3@esp.local", "full_name": "David Wallace", "role": "SUPPORT_L3"},
     {"email": "test.user@esp.local", "full_name": "Test User", "role": None},
 ]
 

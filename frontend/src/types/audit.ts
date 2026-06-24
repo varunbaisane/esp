@@ -1,7 +1,8 @@
-export type AuditAction = 
+export type AuditAction =
   | "TICKET_CREATED"
   | "TICKET_UPDATED"
   | "TICKET_ASSIGNED"
+  | "TICKET_CLAIMED"
   | "TICKET_REASSIGNED"
   | "TICKET_ESCALATED"
   | "STATUS_CHANGED"

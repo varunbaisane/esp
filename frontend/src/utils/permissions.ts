@@ -9,9 +9,12 @@ const ROLE_RANK: Record<string, number> = {
   "ADMIN": 5,
 };
 
-export const getUserHighestRank = (user: CurrentUser | null): number => {
+export const getUserHighestRank = (user: { roles?: (string | { name: string })[] } | null): number => {
   if (!user || !user.roles || user.roles.length === 0) return 0;
-  return Math.max(...user.roles.map(role => ROLE_RANK[role] || 0));
+  return Math.max(...user.roles.map(role => {
+    const roleName = typeof role === 'string' ? role : role.name;
+    return ROLE_RANK[roleName] || 0;
+  }));
 };
 
 export const canEscalateTicket = (user: CurrentUser | null, currentLevel: TicketLevel): boolean => {
@@ -29,6 +32,30 @@ export const canEscalateTicket = (user: CurrentUser | null, currentLevel: Ticket
     // Cannot escalate past L3
     return false;
   }
+  
+  return false;
+};
+
+export const canAssignTicket = (user: CurrentUser | null, ticketLevel: TicketLevel): boolean => {
+  const userRank = getUserHighestRank(user);
+  
+  if (userRank >= 4) return true; // Manager/Admin can assign anything
+  
+  if (ticketLevel === "L1" && userRank >= 1) return true;
+  if (ticketLevel === "L2" && userRank >= 2) return true;
+  if (ticketLevel === "L3" && userRank >= 3) return true;
+  
+  return false;
+};
+
+export const canClaimTicket = (user: CurrentUser | null, ticketLevel: TicketLevel): boolean => {
+  const userRank = getUserHighestRank(user);
+  
+  if (userRank >= 4) return true; // Manager/Admin can claim anything
+  
+  if (ticketLevel === "L1" && userRank >= 1) return true;
+  if (ticketLevel === "L2" && userRank >= 2) return true;
+  if (ticketLevel === "L3" && userRank >= 3) return true;
   
   return false;
 };

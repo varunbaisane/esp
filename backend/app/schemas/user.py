@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr  # pyright: ignore[reportMi
 
 
 class UserCreate(BaseModel):
-    email: EmailStr
+    email: str
     full_name: str
 
 
@@ -14,7 +14,7 @@ class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    email: EmailStr
+    email: str
     full_name: str
     is_active: bool
     created_at: datetime

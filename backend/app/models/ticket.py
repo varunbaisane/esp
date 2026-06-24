@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from enum import Enum
+from typing import Optional
 
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum as SQLAlchemyEnum  # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Mapped, mapped_column, relationship  # pyrefly: ignore [missing-import]
@@ -79,7 +80,7 @@ class Ticket(Base):
         foreign_keys=[created_by_id],
         back_populates="created_tickets",
     )
-    assigned_to: Mapped["User"] = relationship(  # noqa: F821
+    assigned_to: Mapped[Optional["User"]] = relationship(  # noqa: F821
         "User",
         foreign_keys=[assigned_to_id],
         back_populates="assigned_tickets",

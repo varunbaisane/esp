@@ -3,3 +3,9 @@ class InvalidTicketTransitionError(Exception):
 
 class InvalidEscalationError(Exception):
     pass
+
+class TicketAlreadyAssignedError(Exception):
+    pass
+
+class InvalidAssignmentError(Exception):
+    pass

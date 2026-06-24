@@ -65,17 +65,29 @@ class AuditService:
             }
         )
 
-    def log_ticket_assigned(self, actor: User, ticket: Ticket, old_assignee_id: int | None, new_assignee_id: int | None) -> None:
-        action = audit_actions.TICKET_REASSIGNED if old_assignee_id else audit_actions.TICKET_ASSIGNED
+    def log_ticket_claimed(self, actor: User, ticket: Ticket) -> None:
         self._create_log(
             actor=actor,
-            action=action,
+            action=audit_actions.TICKET_CLAIMED,
             entity_type=EntityType.TICKET,
             entity_id=str(ticket.id),
             ticket_id=ticket.id,
             event_metadata={
-                "from_user": old_assignee_id,
-                "to_user": new_assignee_id
+                "previous_owner": None,
+                "new_owner": actor.full_name
+            }
+        )
+
+    def log_ticket_reassigned(self, actor: User, ticket: Ticket, previous_owner_name: str | None, new_owner_name: str | None) -> None:
+        self._create_log(
+            actor=actor,
+            action=audit_actions.TICKET_REASSIGNED,
+            entity_type=EntityType.TICKET,
+            entity_id=str(ticket.id),
+            ticket_id=ticket.id,
+            event_metadata={
+                "previous_owner": previous_owner_name,
+                "new_owner": new_owner_name
             }
         )
 

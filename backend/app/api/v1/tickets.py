@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status # pyrefly: ignore [missing-import]
+from fastapi import APIRouter, Depends, HTTPException, status, Body # pyrefly: ignore [missing-import]
 
-from app.api.deps import get_ticket_service
+from sqlalchemy.orm import Session # pyrefly: ignore [missing-import]
+
+from app.api.deps import get_ticket_service, get_db
 from app.api.deps.auth import get_current_user
 from app.models.ticket import TicketStatus
 from app.models.user import User
 from app.models.user import User
 from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketUpdate, TicketStats
 from app.services.ticket_service import TicketService
-from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalationError
+from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalationError, TicketAlreadyAssignedError
 from app.exceptions.auth import InsufficientPermissionsError
-
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
 
@@ -95,6 +96,56 @@ def escalate_ticket(
     except InvalidEscalationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+@router.post(
+    "/{ticket_id}/claim",
+    response_model=TicketRead,
+)
+def claim_ticket(
+    ticket_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> TicketRead:
+    try:
+        return TicketService(db).claim_ticket(ticket_id, current_user)
+    except TicketAlreadyAssignedError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except InsufficientPermissionsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e),
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+@router.post(
+    "/{ticket_id}/assign",
+    response_model=TicketRead,
+)
+def assign_ticket(
+    ticket_id: int,
+    assignee_id: int = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> TicketRead:
+    try:
+        return TicketService(db).assign_ticket(ticket_id, assignee_id, current_user)
+    except InsufficientPermissionsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
     except ValueError as e:

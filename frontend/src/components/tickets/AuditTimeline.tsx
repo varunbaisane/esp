@@ -67,6 +67,25 @@ export const AuditTimeline = ({ ticketId }: AuditTimelineProps) => {
       const toStatus = log.event_metadata.to_status?.replace(/_/g, " ") || log.event_metadata.to_status;
       return <div className="text-xs text-cyan-600 font-medium mt-1">{fromStatus} → {toStatus}</div>;
     }
+    if (log.action === "TICKET_REASSIGNED") {
+      const prevOwner = log.event_metadata.previous_owner || "Unassigned";
+      const newOwner = log.event_metadata.new_owner || "Unassigned";
+      return (
+        <div className="text-xs text-indigo-600 font-medium mt-1">
+          <span className="block text-gray-400">Assigned To:</span>
+          {prevOwner} → {newOwner}
+        </div>
+      );
+    }
+    if (log.action === "TICKET_CLAIMED") {
+      const newOwner = log.event_metadata.new_owner || log.actor_name;
+      return (
+        <div className="text-xs text-indigo-600 font-medium mt-1">
+          <span className="block text-gray-400">Assigned To:</span>
+          {newOwner}
+        </div>
+      );
+    }
     return null;
   };
 

@@ -19,6 +19,7 @@ export interface TicketSummary {
   support_level: TicketLevel;
   created_by_id: number;
   assigned_to_id: number | null;
+  assigned_to_name: string | null;
   created_at: string;
   sla_due_at: string;
   is_sla_breached: boolean;

@@ -46,6 +46,7 @@ class TicketSummary(BaseModel):
     support_level: TicketLevel
     created_by_id: int
     assigned_to_id: int | None
+    assigned_to_name: str | None
     created_at: datetime
     sla_due_at: datetime
 
