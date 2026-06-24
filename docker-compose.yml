@@ -1,6 +1,22 @@
-# Placeholder for Phase 1.1
+version: '3.8'
 
-# Future phases will define services for:
-# - postgres
-# - backend (API)
-# - frontend (UI)
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: esp-postgres-dev
+    environment:
+      POSTGRES_USER: esp
+      POSTGRES_PASSWORD: esp_dev_password
+      POSTGRES_DB: esp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esp -d esp_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
