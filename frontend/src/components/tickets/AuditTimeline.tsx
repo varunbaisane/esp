@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getTicketAudit } from "../../api/auditService";
 import type { AuditLogRead } from "../../types/audit";
 import { Card } from "../common/Card";
+import { getAuditActionText, renderAuditMetadata } from "../../utils/auditFormatting";
 
 interface AuditTimelineProps {
   ticketId: number;
@@ -33,61 +34,9 @@ export const AuditTimeline = ({ ticketId }: AuditTimelineProps) => {
     return null;
   }
 
-  const formatAction = (log: AuditLogRead) => {
-    switch (log.action) {
-      case "TICKET_CREATED":
-        return "created ticket";
-      case "TICKET_UPDATED":
-        return "updated ticket";
-      case "TICKET_ASSIGNED":
-        return "assigned ticket";
-      case "TICKET_REASSIGNED":
-        return "reassigned ticket";
-      case "TICKET_ESCALATED":
-        return "escalated ticket";
-      case "STATUS_CHANGED":
-        return "changed status";
-      case "TICKET_RESOLVED":
-        return "resolved ticket";
-      case "TICKET_CLOSED":
-        return "closed ticket";
-      default:
-        return (log.action as string).toLowerCase().replace(/_/g, " ");
-    }
-  };
-
-  const renderDetails = (log: AuditLogRead) => {
-    if (!log.event_metadata) return null;
-    
-    if (log.action === "TICKET_ESCALATED") {
-      return <div className="text-xs text-amber-600 font-medium mt-1">{log.event_metadata.from_level} → {log.event_metadata.to_level}</div>;
-    }
-    if (log.action === "STATUS_CHANGED" || log.action === "TICKET_RESOLVED" || log.action === "TICKET_CLOSED") {
-      const fromStatus = log.event_metadata.from_status?.replace(/_/g, " ") || log.event_metadata.from_status;
-      const toStatus = log.event_metadata.to_status?.replace(/_/g, " ") || log.event_metadata.to_status;
-      return <div className="text-xs text-cyan-600 font-medium mt-1">{fromStatus} → {toStatus}</div>;
-    }
-    if (log.action === "TICKET_REASSIGNED") {
-      const prevOwner = log.event_metadata.previous_owner || "Unassigned";
-      const newOwner = log.event_metadata.new_owner || "Unassigned";
-      return (
-        <div className="text-xs text-indigo-600 font-medium mt-1">
-          <span className="block text-gray-400">Assigned To:</span>
-          {prevOwner} → {newOwner}
-        </div>
-      );
-    }
-    if (log.action === "TICKET_CLAIMED") {
-      const newOwner = log.event_metadata.new_owner || log.actor_name;
-      return (
-        <div className="text-xs text-indigo-600 font-medium mt-1">
-          <span className="block text-gray-400">Assigned To:</span>
-          {newOwner}
-        </div>
-      );
-    }
+  if (logs.length === 0) {
     return null;
-  };
+  }
 
   return (
     <Card>
@@ -103,9 +52,9 @@ export const AuditTimeline = ({ ticketId }: AuditTimelineProps) => {
                 {new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }).format(new Date(log.created_at))}
               </span>
               <div className="text-sm text-gray-800">
-                <span className="font-semibold text-gray-900">{log.actor_name}</span> {formatAction(log)}
+                <span className="font-semibold text-gray-900">{log.actor_name}</span> {getAuditActionText(log)}
               </div>
-              {renderDetails(log)}
+              {renderAuditMetadata(log)}
             </div>
           </div>
         ))}

@@ -36,3 +36,10 @@ export interface AuditLogSummary {
   event_metadata: Record<string, any> | null;
   created_at: string;
 }
+
+export interface AuditLogPaginated {
+  items: AuditLogSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}

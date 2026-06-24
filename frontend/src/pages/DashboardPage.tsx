@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { ticketService } from "../services/ticketService";
 import type { TicketStats } from "../types/ticket";
 import { StatsGrid } from "../components/dashboard/StatsGrid";
-import { RecentActivityCard } from "../components/dashboard/RecentActivityCard";
+import { ActivityPreviewCard } from "../components/dashboard/ActivityPreviewCard";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 import { PageContainer } from "../components/layout/PageContainer";
 import type { TicketSummary } from "../types/ticket";
+import type { AuditLogSummary } from "../types/audit";
+import { activityService } from "../services/activityService";
 import { AuthContext } from "../context/AuthContext";
 import { useContext } from "react";
 
@@ -15,6 +17,7 @@ export const DashboardPage = () => {
   const currentUser = authContext?.currentUser || null;
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
+  const [recentActivity, setRecentActivity] = useState<AuditLogSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,12 +26,14 @@ export const DashboardPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const [stats, allTickets] = await Promise.all([
+        const [stats, allTickets, activity] = await Promise.all([
           ticketService.getStats(),
-          ticketService.getTickets()
+          ticketService.getTickets(),
+          activityService.getRecentActivity(10)
         ]);
         setTicketStats(stats);
         setTickets(allTickets);
+        setRecentActivity(activity);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message || "Unable to connect to backend.");
@@ -97,7 +102,7 @@ export const DashboardPage = () => {
       </div>
       
       <div className="mt-8">
-        <RecentActivityCard />
+        <ActivityPreviewCard logs={recentActivity} isLoading={loading} />
       </div>
     </PageContainer>
   );

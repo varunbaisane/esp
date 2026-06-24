@@ -21,3 +21,15 @@ class AuditRepository:
     def list_recent(self, limit: int = 50) -> list[AuditLog]:
         stmt = select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit)
         return list(self._session.execute(stmt).scalars().all())
+
+    def list_all(self, limit: int = 100, offset: int = 0) -> tuple[list[AuditLog], int]:
+        from sqlalchemy import func
+        # Get total count
+        count_stmt = select(func.count()).select_from(AuditLog)
+        total = self._session.execute(count_stmt).scalar() or 0
+        
+        # Get paginated items
+        stmt = select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit).offset(offset)
+        items = list(self._session.execute(stmt).scalars().all())
+        
+        return items, total

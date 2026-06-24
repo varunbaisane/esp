@@ -32,3 +32,9 @@ class AuditLogSummary(BaseModel):
     entity_id: str
     event_metadata: dict | None = None
     created_at: datetime
+
+class AuditLogPaginated(BaseModel):
+    items: list[AuditLogSummary]
+    total: int
+    limit: int
+    offset: int
