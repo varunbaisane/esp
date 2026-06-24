@@ -3,6 +3,7 @@ import { getTicketAudit } from "../../api/auditService";
 import type { AuditLogRead } from "../../types/audit";
 import { Card } from "../common/Card";
 import { getAuditActionText, renderAuditMetadata } from "../../utils/auditFormatting";
+import { UserAvatar } from "../common/UserAvatar";
 
 interface AuditTimelineProps {
   ticketId: number;
@@ -51,10 +52,15 @@ export const AuditTimeline = ({ ticketId }: AuditTimelineProps) => {
               <span className="text-xs text-gray-400 font-medium">
                 {new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }).format(new Date(log.created_at))}
               </span>
-              <div className="text-sm text-gray-800">
-                <span className="font-semibold text-gray-900">{log.actor_name}</span> {getAuditActionText(log)}
+              <div className="text-sm text-gray-800 flex items-center gap-2">
+                <UserAvatar name={log.actor_name} size="sm" />
+                <span>
+                  <span className="font-semibold text-gray-900">{log.actor_name}</span> {getAuditActionText(log)}
+                </span>
               </div>
-              {renderAuditMetadata(log)}
+              <div className="mt-1">
+                {renderAuditMetadata(log)}
+              </div>
             </div>
           </div>
         ))}

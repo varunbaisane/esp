@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { COLORS } from "../../styles/design-tokens";
 import { useAuth } from "../../hooks/useAuth";
+import { UserAvatar } from "../common/UserAvatar";
 
 interface SidebarProps {
   state: 'full' | 'icon' | 'closed';
@@ -12,6 +13,10 @@ export const Sidebar = ({ state, setState }: SidebarProps) => {
   const { currentUser } = useAuth();
   
   const isManagerOrAdmin = currentUser?.roles?.some(role => role === "ADMIN" || role === "ENGINEERING_MANAGER");
+
+  const formatRole = (role: string) => {
+    return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  };
 
   const handleLinkClick = () => {
     // Only close the sidebar automatically on mobile
@@ -55,11 +60,11 @@ export const Sidebar = ({ state, setState }: SidebarProps) => {
       
       {/* Sidebar Content */}
       <aside className={`
-        fixed inset-y-0 top-[73px] left-0 z-30 bg-white border-r border-gray-200 transform transition-all duration-300 ease-in-out md:static overflow-hidden
+        fixed inset-y-0 top-[73px] left-0 z-30 bg-white border-r border-gray-200 transform transition-all duration-300 ease-in-out md:static overflow-hidden flex flex-col
         ${widthClasses}
         ${transformClasses}
       `}>
-        <nav className="px-2 py-4 flex flex-col gap-2">
+        <nav className="flex-1 px-2 py-4 flex flex-col gap-2 overflow-y-auto">
           <Link to="/workspace" className={navLinkClass("/workspace")} onClick={handleLinkClick}>
             <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             <span className={textClasses}>My Workspace</span>
@@ -83,6 +88,25 @@ export const Sidebar = ({ state, setState }: SidebarProps) => {
             <span className={textClasses}>Activity</span>
           </Link>
         </nav>
+        
+        {/* User Card */}
+        {currentUser && (
+          <div className="mt-auto p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <UserAvatar name={currentUser.full_name} size="md" />
+              <div className={`${textClasses} overflow-hidden`}>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {currentUser.full_name}
+                </p>
+                <p className="text-xs font-medium text-gray-500 truncate">
+                  {currentUser.roles && currentUser.roles.length > 0 
+                    ? formatRole(currentUser.roles[0]) 
+                    : "User"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </aside>
     </>
   );

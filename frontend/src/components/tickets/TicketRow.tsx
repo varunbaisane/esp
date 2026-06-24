@@ -4,6 +4,7 @@ import { TicketStatusBadge } from "./TicketStatusBadge";
 import { TicketPriorityBadge } from "./TicketPriorityBadge";
 import { TicketLevelBadge } from "./TicketLevelBadge";
 import { TicketSLABadge } from "./TicketSLABadge";
+import { UserAvatar } from "../common/UserAvatar";
 
 interface TicketRowProps {
   ticket: TicketSummary;
@@ -11,9 +12,6 @@ interface TicketRowProps {
 
 export const TicketRow = ({ ticket }: TicketRowProps) => {
   const navigate = useNavigate();
-
-  // Determine assignee display text based on user requirements
-  const assigneeText = ticket.assigned_to_name || "Unassigned";
 
   // Format date
   const createdDate = new Date(ticket.created_at).toLocaleDateString(undefined, {
@@ -47,9 +45,14 @@ export const TicketRow = ({ ticket }: TicketRowProps) => {
       </td>
 
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        <span className={ticket.assigned_to_id ? "text-gray-900" : "text-gray-400 italic"}>
-          {assigneeText}
-        </span>
+        {ticket.assigned_to_name ? (
+          <div className="flex items-center gap-2 text-gray-900">
+            <UserAvatar name={ticket.assigned_to_name} size="sm" />
+            <span>{ticket.assigned_to_name}</span>
+          </div>
+        ) : (
+          <span className="text-gray-400 italic">Unassigned</span>
+        )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         {createdDate}

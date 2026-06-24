@@ -1,5 +1,6 @@
 import type { TicketRead } from "../../types/ticket";
 import { TicketSLABadge } from "./TicketSLABadge";
+import { UserAvatar } from "../common/UserAvatar";
 
 interface TicketMetadataProps {
   ticket: TicketRead;
@@ -55,11 +56,23 @@ export const TicketMetadata = ({ ticket }: TicketMetadataProps) => {
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide">Created By</dt>
-          <dd className="mt-1 text-base text-gray-900">{creatorText}</dd>
+          <dd className="mt-1 text-base text-gray-900 flex items-center gap-2">
+            <UserAvatar name={ticket.created_by_name || `User #${ticket.created_by_id}`} size="sm" />
+            <span>{creatorText}</span>
+          </dd>
         </div>
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide">Assigned To</dt>
-          <dd className="mt-1 text-base text-gray-900">{assigneeText}</dd>
+          <dd className="mt-1 text-base text-gray-900 flex items-center gap-2">
+            {ticket.assigned_to_name ? (
+              <>
+                <UserAvatar name={ticket.assigned_to_name} size="sm" />
+                <span>{assigneeText}</span>
+              </>
+            ) : (
+              <span className="italic text-gray-400">{assigneeText}</span>
+            )}
+          </dd>
         </div>
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide">Created</dt>

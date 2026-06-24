@@ -3,6 +3,7 @@ import type { CurrentUser } from "../../types/auth";
 import { TicketStatusBadge } from "./TicketStatusBadge";
 import { TicketPriorityBadge } from "./TicketPriorityBadge";
 import { TicketLevelBadge } from "./TicketLevelBadge";
+import { UserAvatar } from "../common/UserAvatar";
 import { useState } from "react";
 import { TicketMetadata } from "./TicketMetadata";
 import { Card } from "../common/Card";
@@ -89,7 +90,10 @@ export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate, onClai
             <div className="flex items-center gap-3 mt-4 text-sm bg-gray-50 p-2.5 rounded-lg border border-gray-100 max-w-fit">
               <span className="font-semibold text-gray-500 uppercase tracking-wide text-xs">Assigned To:</span>
               {ticket.assigned_to_name ? (
-                <span className="font-bold text-gray-900">{ticket.assigned_to_name}</span>
+                <div className="flex items-center gap-2">
+                  <UserAvatar name={ticket.assigned_to_name} size="sm" />
+                  <span className="font-bold text-gray-900">{ticket.assigned_to_name}</span>
+                </div>
               ) : (
                 <span className="font-bold text-gray-400 italic">Unassigned</span>
               )}

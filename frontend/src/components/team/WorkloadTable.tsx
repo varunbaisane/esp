@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { UserAvatar } from "../common/UserAvatar";
 import type { EngineerWorkload } from "../../types/teamOperations";
 
 export const WorkloadTable = ({ workloads }: { workloads: EngineerWorkload[] }) => {
@@ -33,7 +34,10 @@ export const WorkloadTable = ({ workloads }: { workloads: EngineerWorkload[] }) 
               onClick={() => navigate(`/tickets?assigned_to=${workload.user_id}&status=ACTIVE`)}
             >
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {workload.full_name}
+                <div className="flex items-center gap-3">
+                  <UserAvatar name={workload.full_name} size="sm" />
+                  <span>{workload.full_name}</span>
+                </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">

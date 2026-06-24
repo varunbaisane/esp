@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { UserAvatar } from "../common/UserAvatar";
+import { useAuth } from "../../hooks/useAuth";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -6,6 +8,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ onMenuClick, onLogout }: HeaderProps) => {
+  const { currentUser } = useAuth();
   return (
     <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="px-4 sm:px-6 lg:px-8 py-4">
@@ -35,9 +38,7 @@ export const Header = ({ onMenuClick, onLogout }: HeaderProps) => {
               </svg>
               Logout
             </button>
-            <div className="w-8 h-8 rounded-full bg-cyan-100 text-cyan-800 flex items-center justify-center font-bold text-sm ring-2 ring-offset-2 ring-cyan-500/30">
-              V
-            </div>
+            <UserAvatar name={currentUser?.full_name || ""} size="md" />
           </div>
         </div>
       </div>
