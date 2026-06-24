@@ -24,7 +24,7 @@ export const LoginForm = () => {
 
     try {
       const response = await authService.login(formData);
-      login(response.access_token);
+      await login(response.access_token);
       navigate("/dashboard");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
