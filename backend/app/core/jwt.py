@@ -8,13 +8,14 @@ from app.exceptions.auth import InvalidTokenError, TokenExpiredError
 def create_access_token(subject: str) -> str:
     """Create a short-lived JSON Web Token."""
     expire = datetime.now(timezone.utc) + timedelta(
-        minutes=auth_settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     to_encode = {"sub": subject, "exp": expire}
+    
     encoded_jwt = jwt.encode(
         to_encode, 
-        auth_settings.JWT_SECRET_KEY, 
-        algorithm=auth_settings.JWT_ALGORITHM
+        auth_settings.SECRET_KEY, 
+        algorithm=auth_settings.ALGORITHM
     )
     return encoded_jwt
 
@@ -23,8 +24,8 @@ def decode_access_token(token: str) -> TokenPayload:
     try:
         payload = jwt.decode(
             token,
-            auth_settings.JWT_SECRET_KEY,
-            algorithms=[auth_settings.JWT_ALGORITHM]
+            auth_settings.SECRET_KEY,
+            algorithms=[auth_settings.ALGORITHM]
         )
         
         sub = payload.get("sub")

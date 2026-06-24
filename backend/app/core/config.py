@@ -4,6 +4,7 @@ from app.core.db_config import DatabaseSettings
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Engineering Support Platform"
     API_V1_PREFIX: str = "/api/v1"
+    CORS_ORIGINS: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(
         env_file=".env",

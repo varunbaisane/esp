@@ -318,6 +318,16 @@ The application will be available at `http://localhost:5173`.
 
 ---
 
+## Deployment
+
+ESP is designed for deployment using:
+
+- Frontend: Vercel
+- Backend: Render
+- Database: Neon PostgreSQL
+
+---
+
 ## API Documentation
 
 Detailed documentation and interactive consoles are available for the backend API:

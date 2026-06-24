@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session  # pyrefly: ignore [missing-imp
 from app.core.config import db_settings
 
 engine = create_engine(
-    db_settings.database_url,
+    db_settings.DATABASE_URL,
     pool_pre_ping=True,
 )
 

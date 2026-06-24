@@ -1,9 +1,9 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict  # pyright: ignore[reportMissingImports]
 
 class AuthSettings(BaseSettings):
-    JWT_SECRET_KEY: str
-    JWT_ALGORITHM: str = "HS256"
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     model_config = SettingsConfigDict(
         env_file=".env",
