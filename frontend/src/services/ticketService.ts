@@ -1,5 +1,5 @@
 import { apiClient } from "../api/client";
-import type { TicketStats, TicketSummary, TicketCreate, TicketRead, TicketUpdate } from "../types/ticket";
+import type { TicketStats, TicketCreate, TicketRead, TicketUpdate, TicketPaginated, TicketFilters } from "../types/ticket";
 
 export const ticketService = {
   getStats: async (): Promise<TicketStats> => {
@@ -7,8 +7,21 @@ export const ticketService = {
     return response.data;
   },
   
-  getTickets: async (): Promise<TicketSummary[]> => {
-    const response = await apiClient.get<TicketSummary[]>("/tickets");
+  getTickets: async (filters: TicketFilters = {}, limit: number = 25, offset: number = 0, sortBy: string = "created_at", sortOrder: string = "desc"): Promise<TicketPaginated> => {
+    const params = new URLSearchParams();
+    
+    if (filters.status && filters.status !== "ALL") params.append("status", filters.status);
+    if (filters.priority && filters.priority !== "ALL") params.append("priority", filters.priority);
+    if (filters.level && filters.level !== "ALL") params.append("level", filters.level);
+    if (filters.assigned_to && filters.assigned_to !== "ALL") params.append("assigned_to", filters.assigned_to);
+    if (filters.sla_status && filters.sla_status !== "ALL") params.append("sla_status", filters.sla_status);
+    
+    params.append("sort_by", sortBy);
+    params.append("sort_order", sortOrder);
+    params.append("limit", limit.toString());
+    params.append("offset", offset.toString());
+
+    const response = await apiClient.get<TicketPaginated>(`/tickets?${params.toString()}`);
     return response.data;
   },
   

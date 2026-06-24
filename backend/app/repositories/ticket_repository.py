@@ -22,6 +22,121 @@ class TicketRepository:
         stmt = select(Ticket).order_by(Ticket.id.desc())
         return list(self._session.execute(stmt).scalars().all())
 
+    def list_filtered(
+        self,
+        status: TicketStatus | None = None,
+        priority: str | None = None,
+        support_level: str | None = None,
+        assigned_to_id: int | None = None,
+        sla_status: str | None = None,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
+        limit: int = 25,
+        offset: int = 0
+    ) -> tuple[list[Ticket], int]:
+        from datetime import datetime, timezone
+        from sqlalchemy import case, func, desc, asc
+        from app.schemas.ticket import SLAStatus
+        from app.models.ticket import TicketPriority, TicketLevel
+        
+        stmt = select(Ticket)
+        
+        # Filters
+        if status:
+            if status == "ACTIVE":
+                stmt = stmt.where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            else:
+                stmt = stmt.where(Ticket.status == status)
+        if priority:
+            stmt = stmt.where(Ticket.priority == TicketPriority(priority))
+        if support_level:
+            stmt = stmt.where(Ticket.support_level == TicketLevel(support_level))
+        if assigned_to_id is not None:
+            if assigned_to_id == -1:
+                stmt = stmt.where(Ticket.assigned_to_id.is_(None))
+            elif assigned_to_id == -2:
+                stmt = stmt.where(Ticket.assigned_to_id.is_not(None))
+            else:
+                stmt = stmt.where(Ticket.assigned_to_id == assigned_to_id)
+                
+        now = datetime.now(timezone.utc)
+        if sla_status:
+            if sla_status == SLAStatus.BREACHED:
+                stmt = stmt.where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+                stmt = stmt.where(Ticket.sla_due_at < now)
+            elif sla_status == SLAStatus.AT_RISK:
+                stmt = stmt.where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+                stmt = stmt.where(Ticket.sla_due_at >= now)
+                stmt = stmt.where(
+                    (func.extract('epoch', Ticket.sla_due_at) - now.timestamp()) <= 
+                    (func.extract('epoch', Ticket.sla_due_at) - func.extract('epoch', Ticket.created_at)) * 0.25
+                )
+            elif sla_status == SLAStatus.HEALTHY:
+                # Either resolved/closed, or open and > 25% time left
+                stmt = stmt.where(
+                    Ticket.status.in_([TicketStatus.RESOLVED, TicketStatus.CLOSED]) |
+                    (
+                        (Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS])) &
+                        (Ticket.sla_due_at >= now) &
+                        ((func.extract('epoch', Ticket.sla_due_at) - now.timestamp()) > 
+                        (func.extract('epoch', Ticket.sla_due_at) - func.extract('epoch', Ticket.created_at)) * 0.25)
+                    )
+                )
+
+        # Sorting
+        order_func = desc if sort_order.lower() == "desc" else asc
+        
+        if sort_by == "priority":
+            # Enum sorting (Critical > High > Medium > Low)
+            # This requires a CASE statement for custom ranking
+            priority_rank = case(
+                (Ticket.priority == TicketPriority.CRITICAL, 4),
+                (Ticket.priority == TicketPriority.HIGH, 3),
+                (Ticket.priority == TicketPriority.MEDIUM, 2),
+                (Ticket.priority == TicketPriority.LOW, 1),
+                else_=0
+            )
+            stmt = stmt.order_by(order_func(priority_rank), order_func(Ticket.created_at))
+        elif sort_by == "level":
+            level_rank = case(
+                (Ticket.support_level == TicketLevel.L3, 3),
+                (Ticket.support_level == TicketLevel.L2, 2),
+                (Ticket.support_level == TicketLevel.L1, 1),
+                else_=0
+            )
+            stmt = stmt.order_by(order_func(level_rank), order_func(Ticket.created_at))
+        elif sort_by == "sla_status":
+            # BREACHED (3), AT_RISK (2), HEALTHY (1)
+            # HEALTHY includes resolved/closed or plenty of time.
+            breached_cond = (Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS])) & (Ticket.sla_due_at < now)
+            at_risk_cond = (Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS])) & (Ticket.sla_due_at >= now) & (
+                (func.extract('epoch', Ticket.sla_due_at) - now.timestamp()) <= 
+                (func.extract('epoch', Ticket.sla_due_at) - func.extract('epoch', Ticket.created_at)) * 0.25
+            )
+            
+            sla_rank = case(
+                (breached_cond, 3),
+                (at_risk_cond, 2),
+                else_=1
+            )
+            stmt = stmt.order_by(order_func(sla_rank), order_func(Ticket.sla_due_at))
+        elif sort_by == "sla_due_at":
+            stmt = stmt.order_by(order_func(Ticket.sla_due_at), order_func(Ticket.created_at))
+        elif sort_by == "updated_at":
+            stmt = stmt.order_by(order_func(Ticket.updated_at), order_func(Ticket.created_at))
+        else:
+            stmt = stmt.order_by(order_func(Ticket.created_at))
+
+        # Total count
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = self._session.execute(count_stmt).scalar() or 0
+
+        # Pagination
+        stmt = stmt.limit(limit).offset(offset)
+        items = list(self._session.execute(stmt).scalars().all())
+
+        return items, total
+
     def list_by_creator(self, user_id: int) -> list[Ticket]:
         stmt = select(Ticket).where(Ticket.created_by_id == user_id).order_by(Ticket.id.desc())
         return list(self._session.execute(stmt).scalars().all())
@@ -34,7 +149,7 @@ class TicketRepository:
         stmt = select(Ticket).where(Ticket.assigned_to_id == user_id).order_by(Ticket.id.desc())
         return list(self._session.execute(stmt).scalars().all())
 
-    def get_stats(self) -> dict[str, int]:
+    def get_stats(self, user_id: int) -> dict[str, int]:
         from datetime import datetime, timezone
         from app.models.ticket import TicketPriority
         
@@ -63,9 +178,23 @@ class TicketRepository:
             .where(Ticket.priority == TicketPriority.CRITICAL)
         ).scalar() or 0
 
+        my_assigned_count = self._session.execute(
+            select(func.count(Ticket.id))
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            .where(Ticket.assigned_to_id == user_id)
+        ).scalar() or 0
+
+        unassigned_count = self._session.execute(
+            select(func.count(Ticket.id))
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            .where(Ticket.assigned_to_id.is_(None))
+        ).scalar() or 0
+
         return {
             "open_tickets": open_count,
             "breached_tickets": breached_count,
             "high_priority_tickets": high_count,
             "critical_tickets": critical_count,
+            "my_assigned_tickets": my_assigned_count,
+            "unassigned_tickets": unassigned_count,
         }

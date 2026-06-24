@@ -4,11 +4,15 @@ export type TicketLevel = "L1" | "L2" | "L3";
 export type SLAStatus = "HEALTHY" | "AT_RISK" | "BREACHED";
 export type TicketFilterStatus = "ALL" | TicketStatus;
 
+export const DEFAULT_PAGE_SIZE = 25;
+
 export interface TicketStats {
   open_tickets: number;
   breached_tickets: number;
   high_priority_tickets: number;
   critical_tickets: number;
+  my_assigned_tickets: number;
+  unassigned_tickets: number;
 }
 
 export interface TicketSummary {
@@ -54,4 +58,19 @@ export interface TicketUpdate {
   status?: TicketStatus;
   priority?: TicketPriority;
   assigned_to_id?: number | null;
+}
+
+export interface TicketPaginated {
+  items: TicketSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface TicketFilters {
+  status?: string;
+  priority?: string;
+  level?: string;
+  assigned_to?: string;
+  sla_status?: string;
 }

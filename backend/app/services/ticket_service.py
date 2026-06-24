@@ -48,6 +48,47 @@ class TicketService:
     def get_by_id(self, ticket_id: int) -> Ticket | None:
         return self._repository.get_by_id(ticket_id)
 
+    def list_filtered(
+        self,
+        current_user: "User",
+        status: str | None = None,
+        priority: str | None = None,
+        level: str | None = None,
+        assigned_to: str | None = None,
+        sla_status: str | None = None,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
+        limit: int = 25,
+        offset: int = 0
+    ) -> tuple[list["TicketSummary"], int]:
+        assigned_to_id = None
+        if assigned_to:
+            if assigned_to.lower() == "mine":
+                assigned_to_id = current_user.id
+            elif assigned_to.lower() == "unassigned":
+                assigned_to_id = -1
+            elif assigned_to.lower() == "assigned":
+                assigned_to_id = -2
+            else:
+                try:
+                    assigned_to_id = int(assigned_to)
+                except ValueError:
+                    pass
+
+        items, total = self._repository.list_filtered(
+            status=status,
+            priority=priority,
+            support_level=level,
+            assigned_to_id=assigned_to_id,
+            sla_status=sla_status,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            limit=limit,
+            offset=offset
+        )
+        from app.schemas.ticket import TicketSummary
+        return [TicketSummary.model_validate(t) for t in items], total
+
     def list(self) -> list[Ticket]:
         return self._repository.list()
 
@@ -66,8 +107,8 @@ class TicketService:
     def list_by_status(self, status: TicketStatus) -> list[Ticket]:
         return self._repository.list_by_status(status)
 
-    def get_stats(self) -> dict[str, int]:
-        return self._repository.get_stats()
+    def get_stats(self, user_id: int) -> dict[str, int]:
+        return self._repository.get_stats(user_id)
 
 
     def update(self, ticket_id: int, update_data: TicketUpdate, actor: User) -> Ticket:

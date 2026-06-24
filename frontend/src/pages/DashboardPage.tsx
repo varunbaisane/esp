@@ -6,17 +6,12 @@ import { ActivityPreviewCard } from "../components/dashboard/ActivityPreviewCard
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 import { PageContainer } from "../components/layout/PageContainer";
-import type { TicketSummary } from "../types/ticket";
-import type { AuditLogSummary } from "../types/audit";
 import { activityService } from "../services/activityService";
-import { AuthContext } from "../context/AuthContext";
-import { useContext } from "react";
+import type { AuditLogSummary } from "../types/audit";
+import { Link } from "react-router-dom";
 
 export const DashboardPage = () => {
-  const authContext = useContext(AuthContext);
-  const currentUser = authContext?.currentUser || null;
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
-  const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [recentActivity, setRecentActivity] = useState<AuditLogSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,13 +21,11 @@ export const DashboardPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const [stats, allTickets, activity] = await Promise.all([
+        const [stats, activity] = await Promise.all([
           ticketService.getStats(),
-          ticketService.getTickets(),
           activityService.getRecentActivity(10)
         ]);
         setTicketStats(stats);
-        setTickets(allTickets);
         setRecentActivity(activity);
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -70,35 +63,35 @@ export const DashboardPage = () => {
       <StatsGrid stats={ticketStats} />
       
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+        <Link to="/tickets?assigned_to=mine&status=ACTIVE" className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:border-indigo-500 transition-colors">
           <div className="p-5">
             <div className="flex items-center">
               <div className="w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-bold text-gray-500 uppercase tracking-wide truncate">My Assigned Tickets</dt>
                   <dd className="mt-2 text-3xl font-black text-indigo-600">
-                    {tickets.filter(t => t.assigned_to_id === currentUser?.id && t.status !== "RESOLVED" && t.status !== "CLOSED").length}
+                    {ticketStats.my_assigned_tickets}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+        <Link to="/tickets?assigned_to=unassigned&status=ACTIVE" className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:border-amber-500 transition-colors">
           <div className="p-5">
             <div className="flex items-center">
               <div className="w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-bold text-gray-500 uppercase tracking-wide truncate">Unassigned Tickets</dt>
                   <dd className="mt-2 text-3xl font-black text-amber-500">
-                    {tickets.filter(t => t.assigned_to_id === null && t.status !== "RESOLVED" && t.status !== "CLOSED").length}
+                    {ticketStats.unassigned_tickets}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
       
       <div className="mt-8">

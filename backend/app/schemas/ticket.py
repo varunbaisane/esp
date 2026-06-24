@@ -33,6 +33,8 @@ class TicketStats(BaseModel):
     breached_tickets: int
     high_priority_tickets: int
     critical_tickets: int
+    my_assigned_tickets: int
+    unassigned_tickets: int
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -77,6 +79,13 @@ class TicketSummary(BaseModel):
         return SLAStatus.HEALTHY
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class TicketPaginated(BaseModel):
+    items: list[TicketSummary]
+    total: int
+    limit: int
+    offset: int
 
 
 class TicketRead(BaseModel):

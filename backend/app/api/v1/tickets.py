@@ -7,7 +7,7 @@ from app.api.deps.auth import get_current_user
 from app.models.ticket import TicketStatus
 from app.models.user import User
 from app.models.user import User
-from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketUpdate, TicketStats
+from app.schemas.ticket import TicketCreate, TicketRead, TicketSummary, TicketUpdate, TicketStats, TicketPaginated
 from app.services.ticket_service import TicketService
 from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalationError, TicketAlreadyAssignedError
 from app.exceptions.auth import InsufficientPermissionsError
@@ -36,13 +36,39 @@ def create_ticket(
 
 @router.get(
     "",
-    response_model=list[TicketSummary],
+    response_model=TicketPaginated,
 )
 def list_tickets(
+    status: str | None = None,
+    priority: str | None = None,
+    level: str | None = None,
+    assigned_to: str | None = None,
+    sla_status: str | None = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    limit: int = 25,
+    offset: int = 0,
     service: TicketService = Depends(get_ticket_service),
-    _: User = Depends(get_current_user),
-) -> list[TicketSummary]:
-    return service.list()
+    current_user: User = Depends(get_current_user),
+) -> TicketPaginated:
+    items, total = service.list_filtered(
+        current_user=current_user,
+        status=status,
+        priority=priority,
+        level=level,
+        assigned_to=assigned_to,
+        sla_status=sla_status,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        limit=limit,
+        offset=offset
+    )
+    return TicketPaginated(
+        items=items,
+        total=total,
+        limit=limit,
+        offset=offset
+    )
 
 
 
@@ -161,9 +187,9 @@ def assign_ticket(
 )
 def get_stats(
     service: TicketService = Depends(get_ticket_service),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> TicketStats:
-    return TicketStats(**service.get_stats())
+    return TicketStats(**service.get_stats(current_user.id))
 
 
 @router.get(
