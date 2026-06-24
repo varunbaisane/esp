@@ -124,7 +124,7 @@ export const TicketsPage = () => {
 
       {!loading && !error && (
         <div className="mb-4 text-sm font-medium text-gray-600 px-1">
-          Showing <span className="font-bold text-gray-900">{total}</span> ticket{total !== 1 ? 's' : ''} {hasActiveFilters ? 'with applied criteria' : ''}
+          Showing <span className="font-bold text-gray-900">{tickets.length}</span> of <span className="font-bold text-gray-900">{total}</span> ticket{total !== 1 ? 's' : ''} {hasActiveFilters ? 'with applied criteria' : ''}
         </div>
       )}
 

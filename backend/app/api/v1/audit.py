@@ -36,6 +36,15 @@ def get_recent_audit_logs(
     repo = AuditRepository(db)
     return repo.list_recent(limit)
 
+@router.get("/me", response_model=list[AuditLogSummary])
+def get_my_audit_logs(
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> list[AuditLogSummary]:
+    repo = AuditRepository(db)
+    return repo.list_for_actor(current_user.id, limit)
+
 @router.get("/tickets/{ticket_id}", response_model=list[AuditLogRead])
 def get_ticket_audit_logs(
     ticket_id: int,

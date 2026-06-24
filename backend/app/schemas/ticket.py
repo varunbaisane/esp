@@ -87,6 +87,23 @@ class TicketPaginated(BaseModel):
     limit: int
     offset: int
 
+    model_config = ConfigDict(from_attributes=True)
+
+class WorkspaceStats(BaseModel):
+    assigned_tickets: int
+    critical_tickets: int
+    high_priority_tickets: int
+    breached_tickets: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+class WorkspaceResponse(BaseModel):
+    stats: WorkspaceStats
+    total_assigned_tickets: int
+    tickets: list[TicketSummary]
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class TicketRead(BaseModel):
     id: int

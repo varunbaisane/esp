@@ -56,11 +56,12 @@ export const DashboardPage = () => {
   return (
     <PageContainer>
       <div>
-        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h2>
-        <p className="mt-2 text-sm text-gray-500">Overview of current ticket statuses.</p>
+        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Global Operations</h2>
+        <p className="mt-2 text-sm text-gray-500">Overview of system-wide ticket queues and performance.</p>
       </div>
 
-      <StatsGrid stats={ticketStats} />
+      <div className="mt-8">
+        <StatsGrid stats={ticketStats} />
       
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Link to="/tickets?assigned_to=mine&status=ACTIVE" className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:border-indigo-500 transition-colors">
@@ -93,8 +94,10 @@ export const DashboardPage = () => {
           </div>
         </Link>
       </div>
+      </div>
       
-      <div className="mt-8">
+      <div className="mt-12">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Recent Activity</h3>
         <ActivityPreviewCard logs={recentActivity} isLoading={loading} />
       </div>
     </PageContainer>

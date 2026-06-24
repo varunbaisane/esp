@@ -22,6 +22,10 @@ class AuditRepository:
         stmt = select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit)
         return list(self._session.execute(stmt).scalars().all())
 
+    def list_for_actor(self, actor_id: int, limit: int = 50) -> list[AuditLog]:
+        stmt = select(AuditLog).where(AuditLog.actor_id == actor_id).order_by(AuditLog.created_at.desc()).limit(limit)
+        return list(self._session.execute(stmt).scalars().all())
+
     def list_all(self, limit: int = 100, offset: int = 0) -> tuple[list[AuditLog], int]:
         from sqlalchemy import func
         # Get total count

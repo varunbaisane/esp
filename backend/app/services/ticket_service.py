@@ -110,6 +110,34 @@ class TicketService:
     def get_stats(self, user_id: int) -> dict[str, int]:
         return self._repository.get_stats(user_id)
 
+    def get_workspace(self, user: User) -> dict:
+        from datetime import datetime, timezone
+        from app.models.ticket import TicketPriority
+        
+        stats = self._repository.get_user_ticket_stats(user.id)
+        
+        tickets, total = self.list_filtered(
+            current_user=user,
+            assigned_to="mine",
+            status="ACTIVE",
+            limit=1000
+        )
+        
+        now = datetime.now(timezone.utc)
+        def urgency_key(ticket):
+            is_breached = ticket.sla_due_at < now
+            is_critical = ticket.priority == TicketPriority.CRITICAL
+            is_high = ticket.priority == TicketPriority.HIGH
+            return (not is_breached, not is_critical, not is_high, ticket.sla_due_at)
+            
+        sorted_tickets = sorted(tickets, key=urgency_key)
+        
+        return {
+            "stats": stats,
+            "total_assigned_tickets": total,
+            "tickets": sorted_tickets[:10]
+        }
+
 
     def update(self, ticket_id: int, update_data: TicketUpdate, actor: User) -> Ticket:
         ticket = self._repository.get_by_id(ticket_id)

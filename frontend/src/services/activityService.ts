@@ -7,6 +7,11 @@ export const activityService = {
     return response.data;
   },
 
+  getMyActivity: async (limit: number = 10): Promise<AuditLogSummary[]> => {
+    const response = await apiClient.get<AuditLogSummary[]>(`/audit/me?limit=${limit}`);
+    return response.data;
+  },
+
   getActivityFeed: async (limit: number = 25, offset: number = 0): Promise<AuditLogPaginated> => {
     const response = await apiClient.get<AuditLogPaginated>(`/audit?limit=${limit}&offset=${offset}`);
     return response.data;

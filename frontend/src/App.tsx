@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardPage } from "./pages/DashboardPage";
+import { PersonalWorkspacePage } from "./pages/PersonalWorkspacePage";
 import { TicketsPage } from "./pages/TicketsPage";
 import { CreateTicketPage } from "./pages/CreateTicketPage";
 import { TicketDetailPage } from "./pages/TicketDetailPage";
@@ -22,7 +23,8 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/" element={<Navigate to="/workspace" replace />} />
+                  <Route path="/workspace" element={<PersonalWorkspacePage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/tickets" element={<TicketsPage />} />
                   <Route path="/tickets/new" element={<CreateTicketPage />} />

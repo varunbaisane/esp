@@ -198,3 +198,43 @@ class TicketRepository:
             "my_assigned_tickets": my_assigned_count,
             "unassigned_tickets": unassigned_count,
         }
+
+    def get_user_ticket_stats(self, user_id: int) -> dict[str, int]:
+        from datetime import datetime, timezone
+        from app.models.ticket import TicketPriority
+        
+        now = datetime.now(timezone.utc)
+        
+        assigned_count = self._session.execute(
+            select(func.count(Ticket.id))
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            .where(Ticket.assigned_to_id == user_id)
+        ).scalar() or 0
+
+        breached_count = self._session.execute(
+            select(func.count(Ticket.id))
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            .where(Ticket.assigned_to_id == user_id)
+            .where(Ticket.sla_due_at < now)
+        ).scalar() or 0
+
+        high_count = self._session.execute(
+            select(func.count(Ticket.id))
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            .where(Ticket.assigned_to_id == user_id)
+            .where(Ticket.priority == TicketPriority.HIGH)
+        ).scalar() or 0
+
+        critical_count = self._session.execute(
+            select(func.count(Ticket.id))
+            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            .where(Ticket.assigned_to_id == user_id)
+            .where(Ticket.priority == TicketPriority.CRITICAL)
+        ).scalar() or 0
+
+        return {
+            "assigned_tickets": assigned_count,
+            "critical_tickets": critical_count,
+            "high_priority_tickets": high_count,
+            "breached_tickets": breached_count,
+        }
