@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardPage } from "./pages/DashboardPage";
+import { TeamOperationsPage } from "./pages/TeamOperationsPage";
 import { PersonalWorkspacePage } from "./pages/PersonalWorkspacePage";
 import { TicketsPage } from "./pages/TicketsPage";
 import { CreateTicketPage } from "./pages/CreateTicketPage";
@@ -26,6 +27,7 @@ function App() {
                   <Route path="/" element={<Navigate to="/workspace" replace />} />
                   <Route path="/workspace" element={<PersonalWorkspacePage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/team-operations" element={<TeamOperationsPage />} />
                   <Route path="/tickets" element={<TicketsPage />} />
                   <Route path="/tickets/new" element={<CreateTicketPage />} />
                   <Route path="/tickets/:id" element={<TicketDetailPage />} />

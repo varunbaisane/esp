@@ -238,3 +238,75 @@ class TicketRepository:
             "high_priority_tickets": high_count,
             "breached_tickets": breached_count,
         }
+
+    def get_team_operations_stats(self) -> dict[str, int]:
+        from datetime import datetime, timezone
+        from app.models.ticket import TicketLevel
+        
+        now = datetime.now(timezone.utc)
+        active_statuses = [TicketStatus.OPEN, TicketStatus.IN_PROGRESS]
+        
+        def count_for_level(level: TicketLevel):
+            active = self._session.execute(
+                select(func.count(Ticket.id))
+                .where(Ticket.status.in_(active_statuses))
+                .where(Ticket.support_level == level)
+            ).scalar() or 0
+            
+            unassigned = self._session.execute(
+                select(func.count(Ticket.id))
+                .where(Ticket.status.in_(active_statuses))
+                .where(Ticket.support_level == level)
+                .where(Ticket.assigned_to_id.is_(None))
+            ).scalar() or 0
+            
+            breached = self._session.execute(
+                select(func.count(Ticket.id))
+                .where(Ticket.status.in_(active_statuses))
+                .where(Ticket.support_level == level)
+                .where(Ticket.sla_due_at < now)
+            ).scalar() or 0
+            
+            return active, unassigned, breached
+
+        l1_active, l1_unassigned, l1_breached = count_for_level(TicketLevel.L1)
+        l2_active, l2_unassigned, l2_breached = count_for_level(TicketLevel.L2)
+        l3_active, l3_unassigned, l3_breached = count_for_level(TicketLevel.L3)
+
+        return {
+            "l1_active": l1_active,
+            "l2_active": l2_active,
+            "l3_active": l3_active,
+            "l1_unassigned": l1_unassigned,
+            "l2_unassigned": l2_unassigned,
+            "l3_unassigned": l3_unassigned,
+            "l1_breached": l1_breached,
+            "l2_breached": l2_breached,
+            "l3_breached": l3_breached,
+        }
+
+    def get_engineer_workloads(self) -> list[dict]:
+        from app.models.user import User
+        from app.models.user_role import user_roles
+        from app.models.role import Role
+        
+        support_users = self._session.execute(
+            select(User.id, User.full_name, Role.name)
+            .join(user_roles, User.id == user_roles.c.user_id)
+            .join(Role, user_roles.c.role_id == Role.id)
+            .where(Role.name.like("SUPPORT_%"))
+        ).all()
+        
+        workloads = []
+        for user_id, full_name, role_name in support_users:
+            stats = self.get_user_ticket_stats(user_id)
+            workloads.append({
+                "user_id": user_id,
+                "full_name": full_name,
+                "role": role_name,
+                "assigned_tickets": stats["assigned_tickets"],
+                "critical_tickets": stats["critical_tickets"],
+                "breached_tickets": stats["breached_tickets"],
+            })
+            
+        return workloads

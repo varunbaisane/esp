@@ -138,6 +138,15 @@ class TicketService:
             "tickets": sorted_tickets[:10]
         }
 
+    def get_team_operations(self) -> dict:
+        stats = self._repository.get_team_operations_stats()
+        workloads = self._repository.get_engineer_workloads()
+        workloads = sorted(workloads, key=lambda w: w["assigned_tickets"], reverse=True)
+        return {
+            "stats": stats,
+            "workloads": workloads
+        }
+
 
     def update(self, ticket_id: int, update_data: TicketUpdate, actor: User) -> Ticket:
         ticket = self._repository.get_by_id(ticket_id)

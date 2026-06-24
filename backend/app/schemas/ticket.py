@@ -104,6 +104,31 @@ class WorkspaceResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class EngineerWorkload(BaseModel):
+    user_id: int
+    full_name: str
+    role: str
+    assigned_tickets: int
+    critical_tickets: int
+    breached_tickets: int
+
+class TeamOperationsStats(BaseModel):
+    l1_active: int
+    l2_active: int
+    l3_active: int
+
+    l1_unassigned: int
+    l2_unassigned: int
+    l3_unassigned: int
+
+    l1_breached: int
+    l2_breached: int
+    l3_breached: int
+
+class TeamOperationsResponse(BaseModel):
+    stats: TeamOperationsStats
+    workloads: list[EngineerWorkload]
+
 
 class TicketRead(BaseModel):
     id: int
