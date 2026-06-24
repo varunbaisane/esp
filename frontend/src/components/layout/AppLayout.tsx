@@ -52,11 +52,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header spans full width */}
       <Header onMenuClick={toggleSidebar} onLogout={handleLogout} />
 
-      <div className="flex-1 flex min-h-0 relative">
+      <div className="flex-1 flex min-h-0 relative overflow-hidden">
         <Sidebar state={sidebarState} setState={setSidebarState} />
 
         {/* Main Content Area */}
