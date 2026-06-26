@@ -3,8 +3,8 @@ import { ticketService } from "../services/ticketService";
 import type { TicketStats } from "../types/ticket";
 import { StatsGrid } from "../components/dashboard/StatsGrid";
 import { ActivityPreviewCard } from "../components/dashboard/ActivityPreviewCard";
-import { LoadingState } from "../components/common/LoadingState";
-import { ErrorState } from "../components/common/ErrorState";
+import { StateMessage } from "../components/common/StateMessage";
+import { CardSkeleton } from "../components/common/CardSkeleton";
 import { PageContainer } from "../components/layout/PageContainer";
 import { activityService } from "../services/activityService";
 import type { AuditLogSummary } from "../types/audit";
@@ -41,16 +41,17 @@ export const DashboardPage = () => {
     fetchData();
   }, []);
 
-  if (loading) {
-    return <LoadingState message="Loading dashboard..." />;
-  }
-
   if (error) {
-    return <ErrorState message={error} />;
-  }
-
-  if (!ticketStats) {
-    return null;
+    return (
+      <PageContainer>
+        <StateMessage 
+          title="Unable to load dashboard" 
+          message={error} 
+          type="error" 
+          onRetry={() => window.location.reload()}
+        />
+      </PageContainer>
+    );
   }
 
   return (
@@ -61,38 +62,47 @@ export const DashboardPage = () => {
       </div>
 
       <div className="mt-8">
-        <StatsGrid stats={ticketStats} />
+        <StatsGrid stats={ticketStats} isLoading={loading} />
       
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Link to="/tickets?assigned_to=mine&status=ACTIVE" className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:border-indigo-500 transition-colors">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-bold text-gray-500 uppercase tracking-wide truncate">My Assigned Tickets</dt>
-                  <dd className="mt-2 text-3xl font-black text-indigo-600">
-                    {ticketStats.my_assigned_tickets}
-                  </dd>
-                </dl>
+        {loading || !ticketStats ? (
+          <>
+            <CardSkeleton />
+            <CardSkeleton />
+          </>
+        ) : (
+          <>
+            <Link to="/tickets?assigned_to=mine&status=ACTIVE" className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:border-indigo-500 transition-colors">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-bold text-gray-500 uppercase tracking-wide truncate">My Assigned Tickets</dt>
+                      <dd className="mt-2 text-3xl font-black text-indigo-600">
+                        {ticketStats.my_assigned_tickets}
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </Link>
+            </Link>
 
-        <Link to="/tickets?assigned_to=unassigned&status=ACTIVE" className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:border-amber-500 transition-colors">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-bold text-gray-500 uppercase tracking-wide truncate">Unassigned Tickets</dt>
-                  <dd className="mt-2 text-3xl font-black text-amber-500">
-                    {ticketStats.unassigned_tickets}
-                  </dd>
-                </dl>
+            <Link to="/tickets?assigned_to=unassigned&status=ACTIVE" className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:border-amber-500 transition-colors">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-bold text-gray-500 uppercase tracking-wide truncate">Unassigned Tickets</dt>
+                      <dd className="mt-2 text-3xl font-black text-amber-500">
+                        {ticketStats.unassigned_tickets}
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </Link>
+            </Link>
+          </>
+        )}
       </div>
       </div>
       

@@ -3,10 +3,10 @@ import { teamOperationsService } from "../services/teamOperationsService";
 import type { TeamOperationsResponse } from "../types/teamOperations";
 import { TeamOperationsStats } from "../components/team/TeamOperationsStats";
 import { WorkloadTable } from "../components/team/WorkloadTable";
-import { LoadingState } from "../components/common/LoadingState";
-import { ErrorState } from "../components/common/ErrorState";
+import { StateMessage } from "../components/common/StateMessage";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Card } from "../components/common/Card";
+import { TableSkeleton } from "../components/common/TableSkeleton";
 
 export const TeamOperationsPage = () => {
   const [data, setData] = useState<TeamOperationsResponse | null>(null);
@@ -34,16 +34,17 @@ export const TeamOperationsPage = () => {
     fetchData();
   }, []);
 
-  if (loading) {
-    return <LoadingState message="Loading team operations..." />;
-  }
-
   if (error) {
-    return <ErrorState message={error} />;
-  }
-
-  if (!data) {
-    return null;
+    return (
+      <PageContainer>
+        <StateMessage 
+          title="Unable to load team operations" 
+          message={error} 
+          type="error" 
+          onRetry={() => window.location.reload()}
+        />
+      </PageContainer>
+    );
   }
 
   return (
@@ -55,13 +56,17 @@ export const TeamOperationsPage = () => {
 
       <div className="mt-8">
         <h3 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Operational Queues</h3>
-        <TeamOperationsStats stats={data.stats} />
+        <TeamOperationsStats stats={data?.stats || null} isLoading={loading} />
       </div>
 
       <div className="mt-12">
         <h3 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Engineer Workloads</h3>
         <Card noPadding>
-          <WorkloadTable workloads={data.workloads} />
+          {loading || !data ? (
+            <TableSkeleton rows={5} />
+          ) : (
+            <WorkloadTable workloads={data.workloads} />
+          )}
         </Card>
       </div>
     </PageContainer>

@@ -4,6 +4,7 @@ import type { AuditLogRead } from "../../types/audit";
 import { Card } from "../common/Card";
 import { getAuditActionText, renderAuditMetadata } from "../../utils/auditFormatting";
 import { UserAvatar } from "../common/UserAvatar";
+import { TimelineSkeleton } from "../common/TimelineSkeleton";
 
 interface AuditTimelineProps {
   ticketId: number;
@@ -28,7 +29,11 @@ export const AuditTimeline = ({ ticketId }: AuditTimelineProps) => {
   }, [ticketId]);
 
   if (isLoading) {
-    return <div className="text-sm text-gray-500 p-4">Loading timeline...</div>;
+    return (
+      <Card>
+        <TimelineSkeleton />
+      </Card>
+    );
   }
 
   if (logs.length === 0) {

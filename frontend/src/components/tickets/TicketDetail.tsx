@@ -5,6 +5,7 @@ import { TicketPriorityBadge } from "./TicketPriorityBadge";
 import { TicketLevelBadge } from "./TicketLevelBadge";
 import { UserAvatar } from "../common/UserAvatar";
 import { useState } from "react";
+import { ButtonLoader } from "../common/ButtonLoader";
 import { TicketMetadata } from "./TicketMetadata";
 import { Card } from "../common/Card";
 import { ConfirmationModal } from "../common/ConfirmationModal";
@@ -30,9 +31,26 @@ export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate, onClai
   const canClaim = canClaimTicket(currentUser, ticket.support_level);
   const nextLevel = ticket.support_level === "L1" ? "L2" : "L3";
 
+  const [activeAction, setActiveAction] = useState<string | null>(null);
+
   const handleEscalateConfirm = async () => {
-    setIsEscalationModalOpen(false);
-    await onEscalate();
+    setActiveAction("escalate");
+    try {
+      await onEscalate();
+      setIsEscalationModalOpen(false);
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const handleClaim = async () => {
+    setActiveAction("claim");
+    try { await onClaim(); } finally { setActiveAction(null); }
+  };
+
+  const handleUpdate = async (state: TicketStatus) => {
+    setActiveAction(`update_${state}`);
+    try { await onUpdate({ status: state }); } finally { setActiveAction(null); }
   };
 
   return (
@@ -64,6 +82,7 @@ export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate, onClai
           confirmText={`Escalate to ${nextLevel}`}
           onConfirm={handleEscalateConfirm}
           onCancel={() => setIsEscalationModalOpen(false)}
+          isLoading={activeAction === "escalate"}
         />
       )}
       <AssignTicketModal
@@ -100,10 +119,11 @@ export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate, onClai
               
               {!ticket.assigned_to_name && canClaim && (
                 <button
-                  onClick={onClaim}
-                  className="ml-2 px-3 py-1 text-xs font-bold rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm"
+                  onClick={handleClaim}
+                  disabled={activeAction === "claim"}
+                  className="ml-2 px-3 py-1 text-xs font-bold rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm disabled:opacity-50"
                 >
-                  Claim Ticket
+                  {activeAction === "claim" ? <ButtonLoader text="Claiming..." size="sm" /> : "Claim Ticket"}
                 </button>
               )}
               
@@ -129,10 +149,11 @@ export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate, onClai
                 return (
                   <button
                     key={state}
-                    onClick={() => onUpdate({ status: state as TicketStatus })}
-                    className={`px-4 py-2 text-sm font-semibold rounded-md border transition-all ${buttonClass}`}
+                    onClick={() => handleUpdate(state as TicketStatus)}
+                    disabled={activeAction === `update_${state}`}
+                    className={`px-4 py-2 text-sm font-semibold rounded-md border transition-all disabled:opacity-50 ${buttonClass}`}
                   >
-                    Mark as {state.replace("_", " ")}
+                    {activeAction === `update_${state}` ? <ButtonLoader text={`Mark as ${state.replace("_", " ")}`} /> : `Mark as ${state.replace("_", " ")}`}
                   </button>
                 );
               })}

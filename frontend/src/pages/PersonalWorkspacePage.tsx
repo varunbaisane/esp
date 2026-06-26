@@ -6,8 +6,7 @@ import { MyQueueTable } from "../components/dashboard/MyQueueTable";
 import { ActivityPreviewCard } from "../components/dashboard/ActivityPreviewCard";
 import { activityService } from "../services/activityService";
 import type { AuditLogSummary } from "../types/audit";
-import { LoadingState } from "../components/common/LoadingState";
-import { ErrorState } from "../components/common/ErrorState";
+import { StateMessage } from "../components/common/StateMessage";
 import { PageContainer } from "../components/layout/PageContainer";
 
 export const PersonalWorkspacePage = () => {
@@ -41,16 +40,17 @@ export const PersonalWorkspacePage = () => {
     fetchData();
   }, []);
 
-  if (loading) {
-    return <LoadingState message="Loading personal workspace..." />;
-  }
-
   if (error) {
-    return <ErrorState message={error} />;
-  }
-
-  if (!workspace) {
-    return null;
+    return (
+      <PageContainer>
+        <StateMessage 
+          title="Unable to load workspace" 
+          message={error} 
+          type="error" 
+          onRetry={() => window.location.reload()}
+        />
+      </PageContainer>
+    );
   }
 
   return (
@@ -61,12 +61,12 @@ export const PersonalWorkspacePage = () => {
       </div>
 
       <div className="mt-8">
-        <MyWorkspaceStats stats={workspace.stats} />
+        <MyWorkspaceStats stats={workspace?.stats || null} isLoading={loading} />
       </div>
 
       <div className="mt-8">
         <h3 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">My Queue</h3>
-        <MyQueueTable tickets={workspace.tickets} total={workspace.total_assigned_tickets} />
+        <MyQueueTable tickets={workspace?.tickets || []} total={workspace?.total_assigned_tickets || 0} isLoading={loading} />
       </div>
 
       <div className="mt-12">

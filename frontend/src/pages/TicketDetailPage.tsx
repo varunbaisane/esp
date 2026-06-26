@@ -6,8 +6,9 @@ import type { TicketRead } from "../types/ticket";
 import { TicketDetail } from "../components/tickets/TicketDetail";
 import { AuditTimeline } from "../components/tickets/AuditTimeline";
 import { TicketNotFound } from "../components/tickets/TicketNotFound";
-import { LoadingState } from "../components/common/LoadingState";
-import { ErrorState } from "../components/common/ErrorState";
+import { StateMessage } from "../components/common/StateMessage";
+import { CardSkeleton } from "../components/common/CardSkeleton";
+import { TimelineSkeleton } from "../components/common/TimelineSkeleton";
 import { PageContainer } from "../components/layout/PageContainer";
 import { AuthContext } from "../context/AuthContext";
 
@@ -57,8 +58,24 @@ export const TicketDetailPage = () => {
           </Link>
         </div>
         
-        {loading && <LoadingState message="Loading ticket details..." />}
-        {error && !notFound && <ErrorState message={error} />}
+        {loading && (
+          <div className="space-y-6">
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <div className="mt-8">
+              <TimelineSkeleton />
+            </div>
+          </div>
+        )}
+        {error && !notFound && (
+          <StateMessage 
+            title="Unable to load ticket details" 
+            message={error} 
+            type="error" 
+            onRetry={() => window.location.reload()}
+          />
+        )}
         {notFound && !loading && <TicketNotFound />}
         {!loading && !error && !notFound && ticket && (
           <TicketDetail 

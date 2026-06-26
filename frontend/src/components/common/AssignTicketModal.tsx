@@ -4,6 +4,8 @@ import { userService } from "../../services/userService";
 
 import type { TicketLevel } from "../../types/ticket";
 import { getUserHighestRank } from "../../utils/permissions";
+import { ButtonLoader } from "./ButtonLoader";
+import { Button } from "./Button";
 
 interface AssignTicketModalProps {
   isOpen: boolean;
@@ -112,22 +114,22 @@ export const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
         </div>
         
         <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 rounded-b-xl border-t border-gray-100">
-          <button
+          <Button
             type="button"
-            className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            variant="secondary"
             onClick={onClose}
             disabled={isLoading}
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            variant="primary"
             onClick={handleAssign}
             disabled={!selectedUserId || isLoading}
           >
-            {isLoading ? "Assigning..." : "Assign"}
-          </button>
+            {isLoading ? <ButtonLoader text="Assigning..." /> : "Assign"}
+          </Button>
         </div>
       </div>
     </div>

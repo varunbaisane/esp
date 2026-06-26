@@ -2,13 +2,15 @@ import type { TicketSummary } from "../../types/ticket";
 import { TicketTable } from "../tickets/TicketTable";
 import { Card } from "../common/Card";
 import { Link } from "react-router-dom";
+import { TableSkeleton } from "../common/TableSkeleton";
 
 interface MyQueueTableProps {
   tickets: TicketSummary[];
   total: number;
+  isLoading?: boolean;
 }
 
-export const MyQueueTable = ({ tickets, total }: MyQueueTableProps) => {
+export const MyQueueTable = ({ tickets, total, isLoading }: MyQueueTableProps) => {
   return (
     <Card noPadding>
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-2 justify-between items-center rounded-t-xl">
@@ -20,7 +22,9 @@ export const MyQueueTable = ({ tickets, total }: MyQueueTableProps) => {
         )}
       </div>
       
-      {tickets.length > 0 ? (
+      {isLoading ? (
+        <TableSkeleton rows={3} />
+      ) : tickets.length > 0 ? (
         <TicketTable tickets={tickets} />
       ) : (
         <div className="p-8 text-center text-gray-500">

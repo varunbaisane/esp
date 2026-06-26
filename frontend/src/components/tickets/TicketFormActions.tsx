@@ -1,4 +1,5 @@
 import { Button } from "../common/Button";
+import { ButtonLoader } from "../common/ButtonLoader";
 
 interface TicketFormActionsProps {
   loading: boolean;
@@ -19,7 +20,7 @@ export const TicketFormActions = ({ loading }: TicketFormActionsProps) => {
         variant="primary"
         disabled={loading}
       >
-        {loading ? "Creating..." : "Create Ticket"}
+        {loading ? <ButtonLoader text="Creating..." /> : "Create Ticket"}
       </Button>
     </div>
   );

@@ -1,20 +1,24 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { DashboardPage } from "./pages/DashboardPage";
-import { TeamOperationsPage } from "./pages/TeamOperationsPage";
-import { PersonalWorkspacePage } from "./pages/PersonalWorkspacePage";
-import { TicketsPage } from "./pages/TicketsPage";
-import { CreateTicketPage } from "./pages/CreateTicketPage";
-import { TicketDetailPage } from "./pages/TicketDetailPage";
-import { ActivityPage } from "./pages/ActivityPage";
-import { AnalyticsPage } from "./pages/AnalyticsPage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
+import { lazy, Suspense } from "react";
 import { AppLayout } from "./components/layout/AppLayout";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { PageLoader } from "./components/common/PageLoader";
+
+const DashboardPage = lazy(() => import("./pages/DashboardPage").then(module => ({ default: module.DashboardPage })));
+const TeamOperationsPage = lazy(() => import("./pages/TeamOperationsPage").then(module => ({ default: module.TeamOperationsPage })));
+const PersonalWorkspacePage = lazy(() => import("./pages/PersonalWorkspacePage").then(module => ({ default: module.PersonalWorkspacePage })));
+const TicketsPage = lazy(() => import("./pages/TicketsPage").then(module => ({ default: module.TicketsPage })));
+const CreateTicketPage = lazy(() => import("./pages/CreateTicketPage").then(module => ({ default: module.CreateTicketPage })));
+const TicketDetailPage = lazy(() => import("./pages/TicketDetailPage").then(module => ({ default: module.TicketDetailPage })));
+const ActivityPage = lazy(() => import("./pages/ActivityPage").then(module => ({ default: module.ActivityPage })));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage").then(module => ({ default: module.AnalyticsPage })));
+const LoginPage = lazy(() => import("./pages/LoginPage").then(module => ({ default: module.LoginPage })));
+const RegisterPage = lazy(() => import("./pages/RegisterPage").then(module => ({ default: module.RegisterPage })));
 
 function App() {
   return (
     <BrowserRouter>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -24,21 +28,24 @@ function App() {
           <Route path="/*" element={
             <ProtectedRoute>
               <AppLayout>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/workspace" replace />} />
-                  <Route path="/workspace" element={<PersonalWorkspacePage />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/team-operations" element={<TeamOperationsPage />} />
-                  <Route path="/tickets" element={<TicketsPage />} />
-                  <Route path="/tickets/new" element={<CreateTicketPage />} />
-                  <Route path="/tickets/:id" element={<TicketDetailPage />} />
-                  <Route path="/activity" element={<ActivityPage />} />
-                  <Route path="/analytics" element={<AnalyticsPage />} />
-                </Routes>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/workspace" replace />} />
+                    <Route path="/workspace" element={<PersonalWorkspacePage />} />
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/team-operations" element={<TeamOperationsPage />} />
+                    <Route path="/tickets" element={<TicketsPage />} />
+                    <Route path="/tickets/new" element={<CreateTicketPage />} />
+                    <Route path="/tickets/:id" element={<TicketDetailPage />} />
+                    <Route path="/activity" element={<ActivityPage />} />
+                    <Route path="/analytics" element={<AnalyticsPage />} />
+                  </Routes>
+                </Suspense>
               </AppLayout>
             </ProtectedRoute>
           } />
         </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

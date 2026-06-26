@@ -1,11 +1,23 @@
 import { Card } from "../common/Card";
 import type { AnalyticsResponse } from "../../types/analytics";
+import { CardSkeleton } from "../common/CardSkeleton";
 
 interface AnalyticsSummaryProps {
-  analytics: AnalyticsResponse;
+  analytics: AnalyticsResponse | null;
+  isLoading?: boolean;
 }
 
-export const AnalyticsSummary = ({ analytics }: AnalyticsSummaryProps) => {
+export const AnalyticsSummary = ({ analytics, isLoading }: AnalyticsSummaryProps) => {
+  if (isLoading || !analytics) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
       <Card className="flex flex-col">

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { AuditLogSummary } from "../../types/audit";
 import { ActivityFeedItem } from "../activity/ActivityFeedItem";
 import { Card } from "../common/Card";
+import { TimelineSkeleton } from "../common/TimelineSkeleton";
 
 interface ActivityPreviewCardProps {
   logs: AuditLogSummary[];
@@ -25,7 +26,9 @@ export const ActivityPreviewCard = ({ logs, isLoading }: ActivityPreviewCardProp
       </div>
 
       {isLoading ? (
-        <div className="text-sm text-gray-500 py-4">Loading activity...</div>
+        <div className="pt-4">
+          <TimelineSkeleton />
+        </div>
       ) : logs.length === 0 ? (
         <div className="text-sm text-gray-500 py-4 italic">No activity recorded yet.</div>
       ) : (

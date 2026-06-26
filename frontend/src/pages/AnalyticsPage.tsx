@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { PageContainer } from "../components/layout/PageContainer";
 import { analyticsService } from "../services/analyticsService";
 import type { AnalyticsResponse } from "../types/analytics";
-import { LoadingState } from "../components/common/LoadingState";
-import { ErrorState } from "../components/common/ErrorState";
+import { StateMessage } from "../components/common/StateMessage";
+import { ChartSkeleton } from "../components/common/ChartSkeleton";
 import { AnalyticsSummary } from "../components/analytics/AnalyticsSummary";
 import { StatusDistributionChart } from "../components/analytics/StatusDistributionChart";
 import { PriorityDistributionChart } from "../components/analytics/PriorityDistributionChart";
@@ -30,18 +30,15 @@ export const AnalyticsPage = () => {
     fetchAnalytics();
   }, []);
 
-  if (loading) {
+  if (error) {
     return (
       <PageContainer>
-        <LoadingState message="Loading analytics..." />
-      </PageContainer>
-    );
-  }
-
-  if (error || !analytics) {
-    return (
-      <PageContainer>
-        <ErrorState message={error || "Failed to load analytics data."} />
+        <StateMessage 
+          title="Unable to load analytics" 
+          message={error} 
+          type="error" 
+          onRetry={() => window.location.reload()}
+        />
       </PageContainer>
     );
   }
@@ -55,18 +52,32 @@ export const AnalyticsPage = () => {
         </p>
       </div>
 
-      <AnalyticsSummary analytics={analytics} />
+      <AnalyticsSummary analytics={analytics} isLoading={loading} />
 
       <h2 className="text-lg font-bold text-gray-900 mt-10 mb-4 border-b border-gray-200 pb-2">Ticket Distribution</h2>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-        <StatusDistributionChart data={analytics.distribution.by_status} />
-        <PriorityDistributionChart data={analytics.distribution.by_priority} />
-        <LevelDistributionChart data={analytics.distribution.by_level} />
+        {loading || !analytics ? (
+          <>
+            <ChartSkeleton type="ring" />
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </>
+        ) : (
+          <>
+            <StatusDistributionChart data={analytics.distribution.by_status} />
+            <PriorityDistributionChart data={analytics.distribution.by_priority} />
+            <LevelDistributionChart data={analytics.distribution.by_level} />
+          </>
+        )}
       </div>
 
       <h2 className="text-lg font-bold text-gray-900 mt-10 mb-4 border-b border-gray-200 pb-2">Workload Distribution</h2>
       <div className="mb-10">
-        <WorkloadDistributionChart data={analytics.workload.workload_distribution} />
+        {loading || !analytics ? (
+          <ChartSkeleton />
+        ) : (
+          <WorkloadDistributionChart data={analytics.workload.workload_distribution} />
+        )}
       </div>
     </PageContainer>
   );

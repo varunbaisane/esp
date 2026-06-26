@@ -61,7 +61,8 @@ export const RegisterForm = () => {
           <input
             type="text"
             required
-            className={`appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${COLORS.primary.ring["500"]} ${COLORS.primary.border["500"]} sm:text-sm`}
+            disabled={isLoading}
+            className={`appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${COLORS.primary.ring["500"]} ${COLORS.primary.border["500"]} sm:text-sm disabled:opacity-50 disabled:bg-gray-50`}
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
           />
@@ -74,7 +75,8 @@ export const RegisterForm = () => {
           <input
             type="email"
             required
-            className={`appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${COLORS.primary.ring["500"]} ${COLORS.primary.border["500"]} sm:text-sm`}
+            disabled={isLoading}
+            className={`appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${COLORS.primary.ring["500"]} ${COLORS.primary.border["500"]} sm:text-sm disabled:opacity-50 disabled:bg-gray-50`}
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
@@ -87,7 +89,8 @@ export const RegisterForm = () => {
           <input
             type="password"
             required
-            className={`appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${COLORS.primary.ring["500"]} ${COLORS.primary.border["500"]} sm:text-sm`}
+            disabled={isLoading}
+            className={`appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${COLORS.primary.ring["500"]} ${COLORS.primary.border["500"]} sm:text-sm disabled:opacity-50 disabled:bg-gray-50`}
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             onFocus={() => setIsPasswordFocused(true)}
@@ -133,14 +136,15 @@ export const RegisterForm = () => {
           <input
             type="password"
             required
-            className={`appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${COLORS.primary.ring["500"]} ${COLORS.primary.border["500"]} sm:text-sm`}
+            disabled={isLoading}
+            className={`appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${COLORS.primary.ring["500"]} ${COLORS.primary.border["500"]} sm:text-sm disabled:opacity-50 disabled:bg-gray-50`}
             value={formData.confirmPassword}
             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
           />
         </div>
       </div>
 
-      <AuthFormActions submitText={isLoading ? "Creating..." : "Create Account"} />
+      <AuthFormActions submitText="Create Account" isLoading={isLoading} />
     </form>
   );
 };

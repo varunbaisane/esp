@@ -5,8 +5,8 @@ import type { TicketSummary, TicketFilters as FiltersType } from "../types/ticke
 import { TicketTable } from "../components/tickets/TicketTable";
 import { TicketFilters } from "../components/tickets/TicketFilters";
 import { TicketPagination } from "../components/tickets/TicketPagination";
-import { LoadingState } from "../components/common/LoadingState";
-import { ErrorState } from "../components/common/ErrorState";
+import { StateMessage } from "../components/common/StateMessage";
+import { TableSkeleton } from "../components/common/TableSkeleton";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
@@ -128,9 +128,18 @@ export const TicketsPage = () => {
         </div>
       )}
 
-      {loading && <LoadingState message="Loading tickets..." />}
-      {error && <ErrorState message={error} />}
-      {!loading && !error && (
+      {error ? (
+        <StateMessage 
+          title="Unable to load tickets" 
+          message={error} 
+          type="error" 
+          onRetry={() => window.location.reload()}
+        />
+      ) : loading ? (
+        <Card noPadding>
+          <TableSkeleton rows={10} />
+        </Card>
+      ) : (
         <Card noPadding>
           <TicketTable 
             tickets={tickets} 
@@ -141,15 +150,13 @@ export const TicketsPage = () => {
         </Card>
       )}
 
-      {!loading && !error && (
-        <TicketPagination
-          currentPage={currentPage}
-          totalItems={total}
-          limit={DEFAULT_PAGE_SIZE}
-          onPageChange={handlePageChange}
-          isLoading={loading}
-        />
-      )}
+      <TicketPagination
+        currentPage={currentPage}
+        totalItems={total}
+        limit={DEFAULT_PAGE_SIZE}
+        onPageChange={handlePageChange}
+        isLoading={loading}
+      />
     </PageContainer>
   );
 };

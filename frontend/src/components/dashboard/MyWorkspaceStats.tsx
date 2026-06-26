@@ -1,12 +1,24 @@
 import type { WorkspaceStats } from "../../types/workspace";
 import { StatCard } from "./StatCard";
 import { Link } from "react-router-dom";
+import { CardSkeleton } from "../common/CardSkeleton";
 
 interface MyWorkspaceStatsProps {
-  stats: WorkspaceStats;
+  stats: WorkspaceStats | null;
+  isLoading?: boolean;
 }
 
-export const MyWorkspaceStats = ({ stats }: MyWorkspaceStatsProps) => {
+export const MyWorkspaceStats = ({ stats, isLoading }: MyWorkspaceStatsProps) => {
+  if (isLoading || !stats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Link to="/tickets?assigned_to=mine&status=ACTIVE">

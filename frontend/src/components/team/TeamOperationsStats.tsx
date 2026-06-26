@@ -1,7 +1,22 @@
 import { Link } from "react-router-dom";
 import type { TeamOperationsStats as StatsType } from "../../types/teamOperations";
+import { CardSkeleton } from "../common/CardSkeleton";
 
-export const TeamOperationsStats = ({ stats }: { stats: StatsType }) => {
+export const TeamOperationsStats = ({ stats, isLoading }: { stats?: StatsType | null, isLoading?: boolean }) => {
+  if (isLoading || !stats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {["Active Queues", "Unassigned Work", "SLA Risk (Breached)"].map((title, i) => (
+          <div key={i} className="flex flex-col gap-4">
+            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{title}</h4>
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Queues (Active) */}

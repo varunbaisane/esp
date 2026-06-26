@@ -1,5 +1,6 @@
 import type { AuditLogSummary } from "../../types/audit";
 import { ActivityFeedItem } from "./ActivityFeedItem";
+import { TimelineSkeleton } from "../common/TimelineSkeleton";
 
 interface ActivityFeedProps {
   logs: AuditLogSummary[];
@@ -8,7 +9,7 @@ interface ActivityFeedProps {
 
 export const ActivityFeed = ({ logs, isLoading }: ActivityFeedProps) => {
   if (isLoading) {
-    return <div className="text-sm text-gray-500 py-4">Loading activity...</div>;
+    return <TimelineSkeleton />;
   }
 
   if (logs.length === 0) {

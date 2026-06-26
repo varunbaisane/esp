@@ -1,12 +1,24 @@
 import type { TicketStats } from "../../types/ticket";
 import { StatCard } from "./StatCard";
 import { Link } from "react-router-dom";
+import { CardSkeleton } from "../common/CardSkeleton";
 
 interface StatsGridProps {
-  stats: TicketStats;
+  stats: TicketStats | null;
+  isLoading?: boolean;
 }
 
-export const StatsGrid = ({ stats }: StatsGridProps) => {
+export const StatsGrid = ({ stats, isLoading }: StatsGridProps) => {
+  if (isLoading || !stats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Link to="/tickets?status=ACTIVE">
