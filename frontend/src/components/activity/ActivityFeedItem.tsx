@@ -20,7 +20,7 @@ export const ActivityFeedItem = React.memo(({ log }: ActivityFeedItemProps) => {
               <span className="font-semibold text-gray-900">{log.actor_name}</span> {getAuditActionText(log as any)}
               {log.ticket_id && (
                 <span className="ml-1">
-                  ticket <Link to={`/tickets/${log.ticket_id}`} className="text-indigo-600 font-semibold hover:text-indigo-700 hover:underline">#{log.ticket_id}</Link>
+                  <Link to={`/tickets/${log.ticket_id}`} className="text-indigo-600 font-semibold hover:text-indigo-700 hover:underline">#{log.ticket_id}</Link>
                 </span>
               )}
             </span>

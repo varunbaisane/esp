@@ -15,7 +15,7 @@ export const getAuditActionText = (log: AuditLogRead): string => {
     case "TICKET_ESCALATED":
       return "escalated ticket";
     case "STATUS_CHANGED":
-      return "changed status";
+      return "changed the status of ticket";
     case "TICKET_RESOLVED":
       return "resolved ticket";
     case "TICKET_CLOSED":
