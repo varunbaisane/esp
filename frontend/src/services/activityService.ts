@@ -1,19 +1,16 @@
-import { apiClient } from "../api/client";
+import { cachedGet } from "../api/client";
 import type { AuditLogSummary, AuditLogPaginated } from "../types/audit";
 
 export const activityService = {
   getRecentActivity: async (limit: number = 10): Promise<AuditLogSummary[]> => {
-    const response = await apiClient.get<AuditLogSummary[]>(`/audit/recent?limit=${limit}`);
-    return response.data;
+    return cachedGet<AuditLogSummary[]>(`/audit/recent?limit=${limit}`);
   },
 
   getMyActivity: async (limit: number = 10): Promise<AuditLogSummary[]> => {
-    const response = await apiClient.get<AuditLogSummary[]>(`/audit/me?limit=${limit}`);
-    return response.data;
+    return cachedGet<AuditLogSummary[]>(`/audit/me?limit=${limit}`);
   },
 
   getActivityFeed: async (limit: number = 25, offset: number = 0): Promise<AuditLogPaginated> => {
-    const response = await apiClient.get<AuditLogPaginated>(`/audit?limit=${limit}&offset=${offset}`);
-    return response.data;
+    return cachedGet<AuditLogPaginated>(`/audit?limit=${limit}&offset=${offset}`);
   }
 };

@@ -36,16 +36,19 @@ class Ticket(Base):
         SQLAlchemyEnum(TicketStatus),
         nullable=False,
         default=TicketStatus.OPEN,
+        index=True,
     )
     priority: Mapped[TicketPriority] = mapped_column(
         SQLAlchemyEnum(TicketPriority),
         nullable=False,
         default=TicketPriority.MEDIUM,
+        index=True,
     )
     support_level: Mapped[TicketLevel] = mapped_column(
         SQLAlchemyEnum(TicketLevel),
         nullable=False,
         default=TicketLevel.L1,
+        index=True,
     )
     
     created_by_id: Mapped[int] = mapped_column(
@@ -57,22 +60,26 @@ class Ticket(Base):
         Integer,
         ForeignKey("users.id"),
         nullable=True,
+        index=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
+        index=True,
     )
     sla_due_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
+        index=True,
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+        index=True,
     )
     closed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),

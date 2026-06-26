@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import type { AuditLogSummary } from "../../types/audit";
 import { getAuditActionText, renderAuditMetadata } from "../../utils/auditFormatting";
@@ -7,7 +8,7 @@ interface ActivityFeedItemProps {
   log: AuditLogSummary;
 }
 
-export const ActivityFeedItem = ({ log }: ActivityFeedItemProps) => {
+export const ActivityFeedItem = React.memo(({ log }: ActivityFeedItemProps) => {
   return (
     <div className="relative pl-6 py-2">
       <div className="absolute w-3 h-3 bg-white border-2 border-indigo-400 rounded-full -left-[7px] top-3.5" />
@@ -38,4 +39,6 @@ export const ActivityFeedItem = ({ log }: ActivityFeedItemProps) => {
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  return prevProps.log.id === nextProps.log.id;
+});

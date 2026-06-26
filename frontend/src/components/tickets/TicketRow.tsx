@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import type { TicketSummary } from "../../types/ticket";
 import { TicketStatusBadge } from "./TicketStatusBadge";
@@ -10,7 +11,7 @@ interface TicketRowProps {
   ticket: TicketSummary;
 }
 
-export const TicketRow = ({ ticket }: TicketRowProps) => {
+export const TicketRow = React.memo(({ ticket }: TicketRowProps) => {
   const navigate = useNavigate();
 
   // Format date
@@ -59,4 +60,9 @@ export const TicketRow = ({ ticket }: TicketRowProps) => {
       </td>
     </tr>
   );
-};
+}, (prevProps, nextProps) => {
+  return prevProps.ticket.id === nextProps.ticket.id && 
+         prevProps.ticket.status === nextProps.ticket.status &&
+         prevProps.ticket.assigned_to_id === nextProps.ticket.assigned_to_id &&
+         prevProps.ticket.sla_status === nextProps.ticket.sla_status;
+});

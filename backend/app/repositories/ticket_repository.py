@@ -1,5 +1,5 @@
 from sqlalchemy import select, func  # pyrefly: ignore [missing-import]
-from sqlalchemy.orm import Session  # pyrefly: ignore [missing-import]
+from sqlalchemy.orm import Session, selectinload  # pyrefly: ignore [missing-import]
 
 from app.models.ticket import Ticket, TicketStatus
 
@@ -15,11 +15,11 @@ class TicketRepository:
         return ticket
 
     def get_by_id(self, ticket_id: int) -> Ticket | None:
-        stmt = select(Ticket).where(Ticket.id == ticket_id)
+        stmt = select(Ticket).where(Ticket.id == ticket_id).options(selectinload(Ticket.creator), selectinload(Ticket.assigned_to))
         return self._session.execute(stmt).scalar_one_or_none()
 
     def list(self) -> list[Ticket]:
-        stmt = select(Ticket).order_by(Ticket.id.desc())
+        stmt = select(Ticket).order_by(Ticket.id.desc()).options(selectinload(Ticket.creator), selectinload(Ticket.assigned_to))
         return list(self._session.execute(stmt).scalars().all())
 
     def list_filtered(
@@ -132,181 +132,150 @@ class TicketRepository:
         total = self._session.execute(count_stmt).scalar() or 0
 
         # Pagination
+        stmt = stmt.options(selectinload(Ticket.creator), selectinload(Ticket.assigned_to))
         stmt = stmt.limit(limit).offset(offset)
         items = list(self._session.execute(stmt).scalars().all())
 
         return items, total
 
     def list_by_creator(self, user_id: int) -> list[Ticket]:
-        stmt = select(Ticket).where(Ticket.created_by_id == user_id).order_by(Ticket.id.desc())
+        stmt = select(Ticket).where(Ticket.created_by_id == user_id).order_by(Ticket.id.desc()).options(selectinload(Ticket.creator), selectinload(Ticket.assigned_to))
         return list(self._session.execute(stmt).scalars().all())
 
     def list_by_status(self, status: TicketStatus) -> list[Ticket]:
-        stmt = select(Ticket).where(Ticket.status == status).order_by(Ticket.id.desc())
+        stmt = select(Ticket).where(Ticket.status == status).order_by(Ticket.id.desc()).options(selectinload(Ticket.creator), selectinload(Ticket.assigned_to))
         return list(self._session.execute(stmt).scalars().all())
 
     def list_by_assignee(self, user_id: int) -> list[Ticket]:
-        stmt = select(Ticket).where(Ticket.assigned_to_id == user_id).order_by(Ticket.id.desc())
+        stmt = select(Ticket).where(Ticket.assigned_to_id == user_id).order_by(Ticket.id.desc()).options(selectinload(Ticket.creator), selectinload(Ticket.assigned_to))
         return list(self._session.execute(stmt).scalars().all())
 
     def get_stats(self, user_id: int) -> dict[str, int]:
         from datetime import datetime, timezone
+        from sqlalchemy import case, func
         from app.models.ticket import TicketPriority
         
         now = datetime.now(timezone.utc)
+        active_statuses = [TicketStatus.OPEN, TicketStatus.IN_PROGRESS]
         
-        open_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-        ).scalar() or 0
+        stmt = select(
+            func.sum(case((Ticket.status.in_(active_statuses), 1), else_=0)).label("open_tickets"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.sla_due_at < now), 1), else_=0)).label("breached_tickets"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.priority == TicketPriority.HIGH), 1), else_=0)).label("high_count"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.priority == TicketPriority.CRITICAL), 1), else_=0)).label("critical_count"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.assigned_to_id == user_id), 1), else_=0)).label("my_assigned"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.assigned_to_id.is_(None)), 1), else_=0)).label("unassigned_count"),
+        )
         
-        breached_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.sla_due_at < now)
-        ).scalar() or 0
+        result = self._session.execute(stmt).first()
         
-        high_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.priority == TicketPriority.HIGH)
-        ).scalar() or 0
-        
-        critical_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.priority == TicketPriority.CRITICAL)
-        ).scalar() or 0
-
-        my_assigned_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.assigned_to_id == user_id)
-        ).scalar() or 0
-
-        unassigned_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.assigned_to_id.is_(None))
-        ).scalar() or 0
-
         return {
-            "open_tickets": open_count,
-            "breached_tickets": breached_count,
-            "high_priority_tickets": high_count,
-            "critical_tickets": critical_count,
-            "my_assigned_tickets": my_assigned_count,
-            "unassigned_tickets": unassigned_count,
+            "open_tickets": int(getattr(result, 'open_tickets', 0) or 0),
+            "breached_tickets": int(getattr(result, 'breached_tickets', 0) or 0),
+            "high_priority_tickets": int(getattr(result, 'high_count', 0) or 0),
+            "critical_tickets": int(getattr(result, 'critical_count', 0) or 0),
+            "my_assigned_tickets": int(getattr(result, 'my_assigned', 0) or 0),
+            "unassigned_tickets": int(getattr(result, 'unassigned_count', 0) or 0),
         }
 
     def get_user_ticket_stats(self, user_id: int) -> dict[str, int]:
         from datetime import datetime, timezone
+        from sqlalchemy import case, func
         from app.models.ticket import TicketPriority
         
         now = datetime.now(timezone.utc)
+        active_statuses = [TicketStatus.OPEN, TicketStatus.IN_PROGRESS]
         
-        assigned_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.assigned_to_id == user_id)
-        ).scalar() or 0
-
-        breached_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.assigned_to_id == user_id)
-            .where(Ticket.sla_due_at < now)
-        ).scalar() or 0
-
-        high_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.assigned_to_id == user_id)
-            .where(Ticket.priority == TicketPriority.HIGH)
-        ).scalar() or 0
-
-        critical_count = self._session.execute(
-            select(func.count(Ticket.id))
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-            .where(Ticket.assigned_to_id == user_id)
-            .where(Ticket.priority == TicketPriority.CRITICAL)
-        ).scalar() or 0
+        stmt = select(
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.assigned_to_id == user_id), 1), else_=0)).label("assigned"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.assigned_to_id == user_id) & (Ticket.sla_due_at < now), 1), else_=0)).label("breached"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.assigned_to_id == user_id) & (Ticket.priority == TicketPriority.HIGH), 1), else_=0)).label("high"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.assigned_to_id == user_id) & (Ticket.priority == TicketPriority.CRITICAL), 1), else_=0)).label("critical"),
+        )
+        
+        result = self._session.execute(stmt).first()
 
         return {
-            "assigned_tickets": assigned_count,
-            "critical_tickets": critical_count,
-            "high_priority_tickets": high_count,
-            "breached_tickets": breached_count,
+            "assigned_tickets": int(getattr(result, 'assigned', 0) or 0),
+            "critical_tickets": int(getattr(result, 'critical', 0) or 0),
+            "high_priority_tickets": int(getattr(result, 'high', 0) or 0),
+            "breached_tickets": int(getattr(result, 'breached', 0) or 0),
         }
 
     def get_team_operations_stats(self) -> dict[str, int]:
         from datetime import datetime, timezone
+        from sqlalchemy import case, func
         from app.models.ticket import TicketLevel
         
         now = datetime.now(timezone.utc)
         active_statuses = [TicketStatus.OPEN, TicketStatus.IN_PROGRESS]
         
-        def count_for_level(level: TicketLevel):
-            active = self._session.execute(
-                select(func.count(Ticket.id))
-                .where(Ticket.status.in_(active_statuses))
-                .where(Ticket.support_level == level)
-            ).scalar() or 0
+        stmt = select(
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L1), 1), else_=0)).label("l1_active"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L2), 1), else_=0)).label("l2_active"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L3), 1), else_=0)).label("l3_active"),
             
-            unassigned = self._session.execute(
-                select(func.count(Ticket.id))
-                .where(Ticket.status.in_(active_statuses))
-                .where(Ticket.support_level == level)
-                .where(Ticket.assigned_to_id.is_(None))
-            ).scalar() or 0
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L1) & (Ticket.assigned_to_id.is_(None)), 1), else_=0)).label("l1_unassigned"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L2) & (Ticket.assigned_to_id.is_(None)), 1), else_=0)).label("l2_unassigned"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L3) & (Ticket.assigned_to_id.is_(None)), 1), else_=0)).label("l3_unassigned"),
             
-            breached = self._session.execute(
-                select(func.count(Ticket.id))
-                .where(Ticket.status.in_(active_statuses))
-                .where(Ticket.support_level == level)
-                .where(Ticket.sla_due_at < now)
-            ).scalar() or 0
-            
-            return active, unassigned, breached
-
-        l1_active, l1_unassigned, l1_breached = count_for_level(TicketLevel.L1)
-        l2_active, l2_unassigned, l2_breached = count_for_level(TicketLevel.L2)
-        l3_active, l3_unassigned, l3_breached = count_for_level(TicketLevel.L3)
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L1) & (Ticket.sla_due_at < now), 1), else_=0)).label("l1_breached"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L2) & (Ticket.sla_due_at < now), 1), else_=0)).label("l2_breached"),
+            func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.support_level == TicketLevel.L3) & (Ticket.sla_due_at < now), 1), else_=0)).label("l3_breached"),
+        )
+        
+        result = self._session.execute(stmt).first()
 
         return {
-            "l1_active": l1_active,
-            "l2_active": l2_active,
-            "l3_active": l3_active,
-            "l1_unassigned": l1_unassigned,
-            "l2_unassigned": l2_unassigned,
-            "l3_unassigned": l3_unassigned,
-            "l1_breached": l1_breached,
-            "l2_breached": l2_breached,
-            "l3_breached": l3_breached,
+            "l1_active": int(getattr(result, 'l1_active', 0) or 0),
+            "l2_active": int(getattr(result, 'l2_active', 0) or 0),
+            "l3_active": int(getattr(result, 'l3_active', 0) or 0),
+            "l1_unassigned": int(getattr(result, 'l1_unassigned', 0) or 0),
+            "l2_unassigned": int(getattr(result, 'l2_unassigned', 0) or 0),
+            "l3_unassigned": int(getattr(result, 'l3_unassigned', 0) or 0),
+            "l1_breached": int(getattr(result, 'l1_breached', 0) or 0),
+            "l2_breached": int(getattr(result, 'l2_breached', 0) or 0),
+            "l3_breached": int(getattr(result, 'l3_breached', 0) or 0),
         }
 
     def get_engineer_workloads(self) -> list[dict]:
+        from datetime import datetime, timezone
+        from sqlalchemy import case, func
         from app.models.user import User
         from app.models.user_role import user_roles
         from app.models.role import Role
+        from app.models.ticket import TicketPriority
         
-        support_users = self._session.execute(
-            select(User.id, User.full_name, Role.name)
+        now = datetime.now(timezone.utc)
+        active_statuses = [TicketStatus.OPEN, TicketStatus.IN_PROGRESS]
+        
+        stmt = (
+            select(
+                User.id.label("user_id"),
+                User.full_name.label("full_name"),
+                Role.name.label("role_name"),
+                func.sum(case((Ticket.status.in_(active_statuses), 1), else_=0)).label("assigned_tickets"),
+                func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.priority == TicketPriority.CRITICAL), 1), else_=0)).label("critical_tickets"),
+                func.sum(case((Ticket.status.in_(active_statuses) & (Ticket.sla_due_at < now), 1), else_=0)).label("breached_tickets"),
+            )
             .join(user_roles, User.id == user_roles.c.user_id)
             .join(Role, user_roles.c.role_id == Role.id)
+            .outerjoin(Ticket, Ticket.assigned_to_id == User.id)
             .where(Role.name.like("SUPPORT_%"))
-        ).all()
+            .group_by(User.id, User.full_name, Role.name)
+        )
+        
+        results = self._session.execute(stmt).all()
         
         workloads = []
-        for user_id, full_name, role_name in support_users:
-            stats = self.get_user_ticket_stats(user_id)
+        for row in results:
             workloads.append({
-                "user_id": user_id,
-                "full_name": full_name,
-                "role": role_name,
-                "assigned_tickets": stats["assigned_tickets"],
-                "critical_tickets": stats["critical_tickets"],
-                "breached_tickets": stats["breached_tickets"],
+                "user_id": row.user_id,
+                "full_name": row.full_name,
+                "role": row.role_name,
+                "assigned_tickets": int(getattr(row, 'assigned_tickets', 0) or 0),
+                "critical_tickets": int(getattr(row, 'critical_tickets', 0) or 0),
+                "breached_tickets": int(getattr(row, 'breached_tickets', 0) or 0),
             })
             
         return workloads
@@ -330,42 +299,46 @@ class TicketRepository:
 
     def get_sla_analytics(self) -> dict:
         from datetime import datetime, timezone
+        from sqlalchemy import case, func
         now = datetime.now(timezone.utc)
+        active_statuses = [TicketStatus.OPEN, TicketStatus.IN_PROGRESS]
         
-        active_tickets = self._session.execute(
-            select(Ticket.id, Ticket.sla_due_at, Ticket.created_at)
-            .where(Ticket.status.in_([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
-        ).all()
+        at_risk_cond = (
+            Ticket.status.in_(active_statuses) & 
+            (Ticket.sla_due_at >= now) & 
+            ((func.extract('epoch', Ticket.sla_due_at) - now.timestamp()) <= 
+             (func.extract('epoch', Ticket.sla_due_at) - func.extract('epoch', Ticket.created_at)) * 0.25)
+        )
         
-        total_active = len(active_tickets)
-        breached = 0
-        healthy = 0
-        at_risk = 0
+        breached_cond = (Ticket.status.in_(active_statuses)) & (Ticket.sla_due_at < now)
         
-        for t_id, sla_due, created in active_tickets:
-            if sla_due < now:
-                breached += 1
-            else:
-                remaining = (sla_due - now).total_seconds()
-                duration = (sla_due - created).total_seconds()
-                if duration > 0 and (remaining / duration) <= 0.25:
-                    at_risk += 1
-                else:
-                    healthy += 1
+        healthy_cond = (
+            Ticket.status.in_(active_statuses) & 
+            (Ticket.sla_due_at >= now) & 
+            ((func.extract('epoch', Ticket.sla_due_at) - now.timestamp()) > 
+             (func.extract('epoch', Ticket.sla_due_at) - func.extract('epoch', Ticket.created_at)) * 0.25)
+        )
 
-        total_tickets = self._session.execute(select(func.count(Ticket.id))).scalar() or 0
-        all_tickets = self._session.execute(
-            select(Ticket.status, Ticket.sla_due_at, Ticket.closed_at)
-        ).all()
+        stmt = select(
+            func.sum(case((Ticket.status.in_(active_statuses), 1), else_=0)).label("total_active"),
+            func.sum(case((breached_cond, 1), else_=0)).label("breached"),
+            func.sum(case((at_risk_cond, 1), else_=0)).label("at_risk"),
+            func.sum(case((healthy_cond, 1), else_=0)).label("healthy"),
+            func.count(Ticket.id).label("total_tickets"),
+            func.sum(case((
+                (Ticket.status.in_([TicketStatus.RESOLVED, TicketStatus.CLOSED]) & (Ticket.closed_at <= Ticket.sla_due_at)) |
+                (Ticket.status.in_(active_statuses) & (Ticket.sla_due_at >= now)), 1
+            ), else_=0)).label("compliant_count")
+        )
         
-        compliant_count = 0
-        for status, sla_due, closed in all_tickets:
-            if status in (TicketStatus.RESOLVED, TicketStatus.CLOSED):
-                if closed and closed <= sla_due:
-                    compliant_count += 1
-            else:
-                if sla_due >= now:
-                    compliant_count += 1
+        result = self._session.execute(stmt).first()
+        
+        total_active = int(getattr(result, 'total_active', 0) or 0)
+        breached = int(getattr(result, 'breached', 0) or 0)
+        at_risk = int(getattr(result, 'at_risk', 0) or 0)
+        healthy = int(getattr(result, 'healthy', 0) or 0)
+        total_tickets = int(getattr(result, 'total_tickets', 0) or 0)
+        compliant_count = int(getattr(result, 'compliant_count', 0) or 0)
         
         sla_compliance_percent = round((compliant_count / max(1, total_tickets)) * 100, 1)
 
