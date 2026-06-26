@@ -33,6 +33,36 @@ A full-stack engineering operations platform that models real-world support work
 
 ---
 
+## Live Deployment
+
+| Component   | Status | Platform        |
+| ----------- | :----: | --------------- |
+| Frontend    | ✅ Live | Vercel          |
+| Backend API | ✅ Live | Render          |
+| Database    | ✅ Live | Neon PostgreSQL |
+
+### Production URLs
+
+- **Frontend**: https://esp-varun-baisanes-projects.vercel.app/
+- **Backend API**: https://esp-0uqk.onrender.com
+- **Swagger UI**: https://esp-0uqk.onrender.com/docs
+
+### Deployment Architecture
+
+```text
+                Internet
+                    │
+      ┌─────────────┴─────────────┐
+      │                           │
+      ▼                           ▼
+Frontend (Vercel)        Backend API (Render)
+                                   │
+                                   ▼
+                         PostgreSQL (Neon)
+```
+
+---
+
 ## Screenshots
 
 ![Login](docs/screenshots/login.png)
@@ -60,18 +90,21 @@ ESP utilizes a robust, decoupled architecture separating the frontend presentati
 ### High-Level Architecture
 
 ```text
-ESP Platform
-├── React Frontend
-└── FastAPI API
-    ├── Core Modules
-    │   ├── Authentication
-    │   ├── RBAC
-    │   ├── SLA Engine
-    │   └── Audit Engine
-    └── Data Pipeline
-        ├── Service Layer
-        ├── Repository Layer
-        └── PostgreSQL Database
+ ┌─────────────┐             ┌─────────────────────────┐
+ │             │             │       FastAPI API       │
+ │    React    │  REST API   │ ┌────────┐   ┌────────┐ │
+ │  Frontend   ├────────────►│ │  Auth  │   │  RBAC  │ │
+ │             │             │ └────────┘   └────────┘ │
+ └─────────────┘             │ ┌────────┐   ┌────────┐ │
+                             │ │ SLA    │   │ Audit  │ │
+                             │ └────────┘   └────────┘ │
+                             └───────────┬─────────────┘
+                                         │
+                                         ▼
+                                  ┌────────────┐
+                                  │ PostgreSQL │
+                                  │  Database  │
+                                  └────────────┘
 ```
 
 ### Escalation Workflow
@@ -79,12 +112,10 @@ ESP Platform
 Tickets flow deterministically through defined support tiers. Engineers can only escalate tickets if they have the necessary permissions.
 
 ```text
-Escalation Path
-├── L1 Support (Triage & Standard)
-│   └── Escalates to
-├── L2 Support (Advanced Triage)
-│   └── Escalates to
-└── L3 Support (Engineering/Dev)
+ ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+ │  L1 Support  │      │  L2 Support  │      │  L3 Support  │
+ │   (Triage)   ├─────►│ (Adv. Triage)├─────►│(Engineering) │
+ └──────────────┘      └──────────────┘      └──────────────┘
 ```
 
 ### Ticket Lifecycle
@@ -92,17 +123,12 @@ Escalation Path
 A strict state machine governs ticket lifecycles, ensuring tickets cannot transition into invalid states.
 
 ```text
-Ticket Lifecycle
-├── OPEN
-│   └── Assign / Claim
-├── IN_PROGRESS
-│   ├── Resolve Issue
-│   │   └── RESOLVED
-│   └── Unassign / Reopen
-│       └── OPEN
-└── RESOLVED
-    └── Verify & Close
-        └── CLOSED
+ ┌──────┐   Assign/Claim   ┌───────────┐   Resolve Issue   ┌────────┐   Verify/Close   ┌────────┐
+ │ OPEN ├─────────────────►│IN_PROGRESS├──────────────────►│RESOLVED├─────────────────►│ CLOSED │
+ └──┬───┘                  └─────┬─────┘                   └────────┘                  └────────┘
+    ▲                            │
+    └────────────────────────────┘
+          Unassign / Reopen
 ```
 
 ---
@@ -228,7 +254,9 @@ Database Schema
 
 ---
 
-## Demo Organization
+## Demo Environment
+
+> The production deployment is pre-seeded with demo users, realistic tickets, audit history, and operational dashboards for evaluation.
 
 The platform comes with a comprehensive seed script that provisions a realistic engineering organization. 
 
@@ -318,23 +346,12 @@ The application will be available at `http://localhost:5173`.
 
 ---
 
-## Deployment
-
-ESP is designed for deployment using:
-
-- Frontend: Vercel
-- Backend: Render
-- Database: Neon PostgreSQL
-
----
-
 ## API Documentation
 
 Detailed documentation and interactive consoles are available for the backend API:
 
 - **API Reference**: [docs/api.md](docs/api.md)
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **Swagger UI**: https://esp-0uqk.onrender.com/docs
 
 ---
 

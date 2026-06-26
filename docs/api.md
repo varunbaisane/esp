@@ -331,10 +331,9 @@ ESP enforces several platform-wide invariants:
 
 ## OpenAPI Documentation
 
-While the backend is running locally, you can access the automatically generated OpenAPI specs:
+You can access the automatically generated interactive OpenAPI specifications directly on the live backend:
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **Swagger UI**: https://esp-0uqk.onrender.com/docs
 
 ---
 
