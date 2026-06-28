@@ -85,7 +85,7 @@ export const OTPInput = ({ value, onChange, onComplete, length = 6, disabled = f
       {Array.from({ length }).map((_, index) => (
         <input
           key={index}
-          ref={(el) => (inputRefs.current[index] = el)}
+          ref={(el) => { inputRefs.current[index] = el; }}
           type="text"
           inputMode="numeric"
           disabled={disabled}
