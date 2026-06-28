@@ -17,7 +17,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize auth state from local storage on mount
   useEffect(() => {
     const initializeAuth = async () => {
-      const storedToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+      const storedToken = sessionStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem(ACCESS_TOKEN_KEY);
       if (storedToken) {
         setToken(storedToken);
         try {
@@ -27,6 +27,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } catch (error) {
           console.error("Failed to fetch user", error);
           localStorage.removeItem(ACCESS_TOKEN_KEY);
+          sessionStorage.removeItem(ACCESS_TOKEN_KEY);
         }
       }
       setIsLoading(false);
@@ -34,8 +35,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (newToken: string) => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, newToken);
+  const login = async (newToken: string, rememberMe: boolean = false) => {
+    if (rememberMe) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, newToken);
+      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    } else {
+      sessionStorage.setItem(ACCESS_TOKEN_KEY, newToken);
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+    }
     setToken(newToken);
     try {
       const user = await authService.me();
@@ -48,6 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
     setToken(null);
     setCurrentUser(null);
     setIsAuthenticated(false);

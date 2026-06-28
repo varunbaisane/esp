@@ -12,8 +12,11 @@ const CreateTicketPage = lazy(() => import("./pages/CreateTicketPage").then(modu
 const TicketDetailPage = lazy(() => import("./pages/TicketDetailPage").then(module => ({ default: module.TicketDetailPage })));
 const ActivityPage = lazy(() => import("./pages/ActivityPage").then(module => ({ default: module.ActivityPage })));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage").then(module => ({ default: module.AnalyticsPage })));
-const LoginPage = lazy(() => import("./pages/LoginPage").then(module => ({ default: module.LoginPage })));
-const RegisterPage = lazy(() => import("./pages/RegisterPage").then(module => ({ default: module.RegisterPage })));
+const LoginPage = lazy(() => import("./pages/auth/LoginPage").then(module => ({ default: module.LoginPage })));
+const RegisterPage = lazy(() => import("./pages/auth/RegisterPage").then(module => ({ default: module.RegisterPage })));
+const RegistrationSuccessPage = lazy(() => import("./pages/auth/RegistrationSuccessPage").then(module => ({ default: module.RegistrationSuccessPage })));
+const VerifyEmailPage = lazy(() => import("./pages/auth/VerifyEmailPage").then(module => ({ default: module.VerifyEmailPage })));
+const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage").then(module => ({ default: module.ForgotPasswordPage })));
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
           {/* Public Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/registration-success" element={<RegistrationSuccessPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Protected Portal Routes */}
           <Route path="/*" element={

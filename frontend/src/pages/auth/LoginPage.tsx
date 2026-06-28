@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { AuthLayout } from "../components/auth/AuthLayout";
-import { LoginForm } from "../components/auth/LoginForm";
-import { COLORS } from "../styles/design-tokens";
+import { AuthLayout } from "../../components/auth/AuthLayout";
+import { LoginForm } from "../../components/auth/LoginForm";
+import { COLORS } from "../../styles/design-tokens";
 
 export const LoginPage = () => {
   return (

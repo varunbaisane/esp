@@ -8,6 +8,16 @@ from app.models.user_role import user_roles
 
 
 class User(Base):
+    """
+    User model representing an account in the system.
+    
+    The `is_system_account` field is used for:
+    * cleanup exemption (prevents unverified system accounts from being deleted)
+    * demo users
+    * future demo reset
+    * analytics exclusion
+    * protected accounts
+    """
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -15,6 +25,9 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_system_account: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

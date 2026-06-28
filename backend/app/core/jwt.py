@@ -5,11 +5,14 @@ from app.core.auth_config import auth_settings
 from app.schemas.auth import TokenPayload
 from app.exceptions.auth import InvalidTokenError, TokenExpiredError
 
-def create_access_token(subject: str) -> str:
-    """Create a short-lived JSON Web Token."""
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+def create_access_token(subject: str, expires_delta: timedelta | None = None) -> str:
+    """Create a JSON Web Token with customizable expiration."""
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
     to_encode = {"sub": subject, "exp": expire}
     
     encoded_jwt = jwt.encode(

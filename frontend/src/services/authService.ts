@@ -1,5 +1,5 @@
 import { apiClient } from "../api/client";
-import type { RegisterRequest, LoginRequest, TokenResponse } from "../types/auth";
+import type { RegisterRequest, LoginRequest, TokenResponse, ResetPasswordRequest } from "../types/auth";
 
 export const authService = {
   register: async (data: RegisterRequest) => {
@@ -14,6 +14,26 @@ export const authService = {
 
   me: async () => {
     const response = await apiClient.get("/auth/me");
+    return response.data;
+  },
+
+  sendVerificationOtp: async (email: string) => {
+    const response = await apiClient.post("/auth/send-verification-otp", { email });
+    return response.data;
+  },
+
+  verifyEmail: async (email: string, otp: string) => {
+    const response = await apiClient.post("/auth/verify-email", { email, otp });
+    return response.data;
+  },
+
+  forgotPassword: async (email: string) => {
+    const response = await apiClient.post("/auth/forgot-password", { email });
+    return response.data;
+  },
+
+  resetPassword: async (data: ResetPasswordRequest) => {
+    const response = await apiClient.post("/auth/reset-password", data);
     return response.data;
   },
 };
