@@ -16,6 +16,13 @@ def create_role(client: TestClient, name: str = "Admin") -> dict:
     assert response.status_code == 201
     return response.json()
 
+def ensure_role(client: TestClient, name: str = "SUPPORT_L1") -> int:
+    roles = client.get("/api/v1/roles").json()
+    for r in roles:
+        if r["name"] == name:
+            return r["id"]
+    return create_role(client, name)["id"]
+
 def assign_role(client: TestClient, user_id: int, role_id: int) -> dict:
     response = client.post(
         f"/api/v1/users/{user_id}/roles",
@@ -27,7 +34,8 @@ def assign_role(client: TestClient, user_id: int, role_id: int) -> dict:
 def create_ticket(client: TestClient, created_by_id: int, title: str = "Test Ticket", description: str = "Test Desc") -> dict:
     response = client.post(
         "/api/v1/tickets",
-        json={"title": title, "description": description, "created_by_id": created_by_id}
+        json={"title": title, "description": description, "priority": "MEDIUM"},
+        headers={"Authorization": f"Bearer testuser_{created_by_id}"}
     )
     assert response.status_code == 201
     return response.json()

@@ -22,16 +22,16 @@ ROLES = [
 ]
 
 USERS = [
-    {"email": "admin@esp.local", "full_name": "Admin User", "role": "ADMIN"},
-    {"email": "manager@esp.local", "full_name": "Engineering Manager", "role": "ENGINEERING_MANAGER"},
-    {"email": "alice.l1@esp.local", "full_name": "Alice Johnson", "role": "SUPPORT_L1"},
-    {"email": "john.l1@esp.local", "full_name": "John Doe", "role": "SUPPORT_L1"},
-    {"email": "sarah.l1@esp.local", "full_name": "Sarah Connor", "role": "SUPPORT_L1"},
-    {"email": "bob.l2@esp.local", "full_name": "Bob Smith", "role": "SUPPORT_L2"},
-    {"email": "mike.l2@esp.local", "full_name": "Mike Wazowski", "role": "SUPPORT_L2"},
-    {"email": "charlie.l3@esp.local", "full_name": "Charlie Brown", "role": "SUPPORT_L3"},
-    {"email": "david.l3@esp.local", "full_name": "David Wallace", "role": "SUPPORT_L3"},
-    {"email": "test.user@esp.local", "full_name": "Test User", "role": None},
+    {"email": "admin@esp.com", "full_name": "Admin User", "role": "ADMIN"},
+    {"email": "manager@esp.com", "full_name": "Engineering Manager", "role": "ENGINEERING_MANAGER"},
+    {"email": "alice.l1@esp.com", "full_name": "Alice Johnson", "role": "SUPPORT_L1"},
+    {"email": "john.l1@esp.com", "full_name": "John Doe", "role": "SUPPORT_L1"},
+    {"email": "sarah.l1@esp.com", "full_name": "Sarah Connor", "role": "SUPPORT_L1"},
+    {"email": "bob.l2@esp.com", "full_name": "Bob Smith", "role": "SUPPORT_L2"},
+    {"email": "mike.l2@esp.com", "full_name": "Mike Wazowski", "role": "SUPPORT_L2"},
+    {"email": "charlie.l3@esp.com", "full_name": "Charlie Brown", "role": "SUPPORT_L3"},
+    {"email": "david.l3@esp.com", "full_name": "David Wallace", "role": "SUPPORT_L3"},
+    {"email": "test.user@esp.com", "full_name": "Test User", "role": None},
 ]
 
 TICKETS = [
@@ -41,7 +41,7 @@ TICKETS = [
         "status": TicketStatus.OPEN,
         "priority": TicketPriority.CRITICAL,
         "support_level": TicketLevel.L1,
-        "creator": "test.user@esp.local",
+        "creator": "test.user@esp.com",
     },
     {
         "title": "Frontend Login Redirect Loop",
@@ -49,8 +49,8 @@ TICKETS = [
         "status": TicketStatus.IN_PROGRESS,
         "priority": TicketPriority.HIGH,
         "support_level": TicketLevel.L2,
-        "creator": "alice.l1@esp.local",
-        "assignee": "bob.l2@esp.local"
+        "creator": "alice.l1@esp.com",
+        "assignee": "bob.l2@esp.com"
     },
     {
         "title": "Email Service Timeout",
@@ -58,7 +58,7 @@ TICKETS = [
         "status": TicketStatus.OPEN,
         "priority": TicketPriority.MEDIUM,
         "support_level": TicketLevel.L1,
-        "creator": "test.user@esp.local",
+        "creator": "test.user@esp.com",
     },
     {
         "title": "Critical Production Outage",
@@ -66,13 +66,13 @@ TICKETS = [
         "status": TicketStatus.IN_PROGRESS,
         "priority": TicketPriority.CRITICAL,
         "support_level": TicketLevel.L3,
-        "creator": "manager@esp.local",
-        "assignee": "charlie.l3@esp.local"
+        "creator": "manager@esp.com",
+        "assignee": "charlie.l3@esp.com"
     }
 ]
 
-def seed_data():
-    db: Session = SessionLocal()
+def seed_data(db_session: Session = None):
+    db: Session = db_session if db_session else SessionLocal()
     try:
         print("Seeding Roles...")
         role_map = {}
@@ -86,6 +86,15 @@ def seed_data():
             role_map[role_name] = role.id
 
         print("Seeding Users...")
+        # First, migrate any existing .local users to .com and mark them verified
+        existing_users = db.query(User).all()
+        for eu in existing_users:
+            if eu.email.endswith('.local'):
+                eu.email = eu.email.replace('.local', '.com')
+            eu.email_verified = True
+            eu.email_verified_at = datetime.now(timezone.utc)
+        db.flush()
+
         user_map = {}
         hashed_password = hash_password("Password123!")
         for u in USERS:
@@ -94,11 +103,20 @@ def seed_data():
                 user = User(
                     email=u["email"],
                     full_name=u["full_name"],
-                    hashed_password=hashed_password
+                    hashed_password=hashed_password,
+                    email_verified=True,
+                    email_verified_at=datetime.now(timezone.utc),
+                    is_system_account=True
                 )
                 db.add(user)
                 db.flush()
                 print(f"  Created user: {u['email']}")
+            else:
+                user.is_system_account = True
+                user.email_verified = True
+                if not user.email_verified_at:
+                    user.email_verified_at = datetime.now(timezone.utc)
+                db.flush()
             user_map[u["email"]] = user.id
 
             # Assign role
@@ -141,7 +159,8 @@ def seed_data():
         db.rollback()
         print(f"Error seeding data: {e}")
     finally:
-        db.close()
+        if not db_session:
+            db.close()
 
 if __name__ == "__main__":
     seed_data()

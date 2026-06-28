@@ -14,9 +14,16 @@ class UserService:
         if self._repository.get_by_email(user_data.email):
             raise ValueError("User with this email already exists")
 
+        from app.core.security import hash_password
+        import secrets
+        
+        random_pwd = secrets.token_urlsafe(16)
         user = User(
             email=user_data.email,
             full_name=user_data.full_name,
+            hashed_password=hash_password(random_pwd),
+            email_verified=True,
+            is_system_account=True,
         )
 
         try:
