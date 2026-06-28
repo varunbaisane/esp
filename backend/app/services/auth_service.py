@@ -4,7 +4,7 @@ from app.models.user import User
 from app.schemas.auth import RegisterRequest, LoginRequest
 from app.core.security import hash_password, verify_password
 from app.repositories.user_repository import UserRepository
-from app.exceptions.auth import EmailAlreadyRegisteredError, InvalidCredentialsError
+from app.exceptions.auth import EmailAlreadyRegisteredError, InvalidCredentialsError, UnverifiedEmailError
 
 
 class AuthService:
@@ -34,5 +34,8 @@ class AuthService:
             
         if not verify_password(data.password, user.hashed_password):
             raise InvalidCredentialsError()
+            
+        if not user.email_verified:
+            raise UnverifiedEmailError()
             
         return user

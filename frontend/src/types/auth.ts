@@ -3,6 +3,7 @@ export const ACCESS_TOKEN_KEY = "access_token";
 export interface LoginRequest {
   email: string;
   password: string;
+  remember_me?: boolean;
 }
 
 export interface RegisterRequest {
@@ -31,6 +32,12 @@ export interface AuthState {
 }
 
 export interface AuthContextType extends AuthState {
-  login: (token: string) => Promise<void>;
+  login: (token: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  new_password: string;
 }

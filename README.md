@@ -139,6 +139,19 @@ A strict state machine governs ticket lifecycles, ensuring tickets cannot transi
 - **JWT Authentication**: Secure, stateless session management.
 - **Protected Routes**: UI components and API endpoints restricted based on authentication status.
 - **Role-Based Access Control (RBAC)**: Fine-grained permissions separating `ADMIN`, `ENGINEERING_MANAGER`, and tiered `SUPPORT_L1/L2/L3` roles.
+- **Unverified Account Lifecycle**: Accounts that remain unverified are automatically deleted after the configured expiry period.
+  ```text
+  Register → Verification Email Sent → Account Pending Verification
+  
+  Verified within expiry:
+          ↓
+  Account Activated
+  
+  Not Verified within expiry:
+          ↓
+  Account and OTP automatically removed by cleanup.
+  ```
+  *(Note: Seeded demo users are pre-verified, marked as system accounts, and are immune to cleanup. Additionally, SMTP cannot reliably determine mailbox existence synchronously during delivery, hence the background cleanup strategy.)*
 
 ### Ticket Management
 - **Ticket Creation & Assignment**: Strict creation workflows and assignment rules.
@@ -216,7 +229,7 @@ engineering-support-platform
 
 ---
 
-## Database ER Diagram
+## Database Diagram
 
 ```text
 Database Schema
@@ -263,21 +276,21 @@ The platform comes with a comprehensive seed script that provisions a realistic 
 **Default Password for all accounts**: `Password123!`
 
 ### Administrative & Managerial
-- `admin@esp.local` (Admin User)
-- `manager@esp.local` (Engineering Manager)
+- `admin@esp.com` (Admin User)
+- `manager@esp.com` (Engineering Manager)
 
 ### L1 Support Engineers
-- `alice.l1@esp.local` (Alice Johnson)
-- `john.l1@esp.local` (John Doe)
-- `sarah.l1@esp.local` (Sarah Connor)
+- `alice.l1@esp.com` (Alice Johnson)
+- `john.l1@esp.com` (John Doe)
+- `sarah.l1@esp.com` (Sarah Connor)
 
 ### L2 Support Engineers
-- `bob.l2@esp.local` (Bob Smith)
-- `mike.l2@esp.local` (Mike Wazowski)
+- `bob.l2@esp.com` (Bob Smith)
+- `mike.l2@esp.com` (Mike Wazowski)
 
 ### L3 Support Engineers
-- `charlie.l3@esp.local` (Charlie Brown)
-- `david.l3@esp.local` (David Wallace)
+- `charlie.l3@esp.com` (Charlie Brown)
+- `david.l3@esp.com` (David Wallace)
 
 ---
 
@@ -285,11 +298,11 @@ The platform comes with a comprehensive seed script that provisions a realistic 
 
 To experience the platform's escalation enforcement:
 
-1. **Create an Issue**: Log in as `alice.l1@esp.local` and create a high-priority ticket. 
+1. **Create an Issue**: Log in as `alice.l1@esp.com` and create a high-priority ticket. 
 2. **Claim & Escalate**: Claim the ticket as Alice, realize it requires deeper investigation, and use the "Escalate" action to send it to the L2 queue.
-3. **L2 Triage**: Log out and log back in as `bob.l2@esp.local`. Navigate to Team Operations to see the newly escalated ticket in the L2 unassigned queue.
+3. **L2 Triage**: Log out and log back in as `bob.l2@esp.com`. Navigate to Team Operations to see the newly escalated ticket in the L2 unassigned queue.
 4. **Resolution**: Bob claims the ticket, investigates, and changes the status to `Resolved`.
-5. **Audit Trail**: Log in as `manager@esp.local` and view the Ticket Timeline or global Activity Center to see the complete immutable history of Alice's creation/escalation and Bob's resolution.
+5. **Audit Trail**: Log in as `manager@esp.com` and view the Ticket Timeline or global Activity Center to see the complete immutable history of Alice's creation/escalation and Bob's resolution.
 
 ---
 
@@ -318,6 +331,18 @@ docker-compose up -d db
 cd backend
 poetry install
 cp .env.example .env
+```
+Ensure your `.env` is populated with the correct database and SMTP configurations:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/esp
+SECRET_KEY=your-secure-secret-key
+EMAIL_MODE=smtp
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM=your-email@gmail.com
+SMTP_TLS=true
 ```
 
 Apply database migrations:
