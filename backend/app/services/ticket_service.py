@@ -1,8 +1,10 @@
+from app.schemas import TicketSummary
 from sqlalchemy.orm import Session  # pyrefly: ignore [missing-import]
 
 from app.models.ticket import Ticket, TicketStatus, TicketPriority
 from app.repositories.ticket_repository import TicketRepository
 from app.repositories.user_repository import UserRepository
+from app.models.user import User
 from app.schemas.ticket import TicketCreate, TicketUpdate
 from app.domain.ticket_workflow import can_transition
 from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalationError
@@ -148,8 +150,12 @@ class TicketService:
         }
 
 
-    def update(self, ticket_id: int, update_data: TicketUpdate, actor: User) -> Ticket:
-        ticket = self._repository.get_by_id(ticket_id)
+    def update(self, ticket_or_id: int | Ticket, update_data: TicketUpdate, actor: User) -> Ticket:
+        if isinstance(ticket_or_id, int):
+            ticket = self._repository.get_by_id(ticket_or_id)
+        else:
+            ticket = ticket_or_id
+            
         if not ticket:
             raise ValueError("Ticket not found")
 
@@ -213,12 +219,16 @@ class TicketService:
             self._session.rollback()
             raise
 
-    def assign_ticket(self, ticket_id: int, assignee_id: int, actor: User) -> Ticket:
+    def assign_ticket(self, ticket_or_id: int | Ticket, assignee_id: int, actor: User) -> Ticket:
         from app.domain.permissions import can_assign_ticket
         from app.exceptions.ticket import InvalidAssignmentError
         from app.exceptions.auth import InsufficientPermissionsError
 
-        ticket = self._repository.get_by_id(ticket_id)
+        if isinstance(ticket_or_id, int):
+            ticket = self._repository.get_by_id(ticket_or_id)
+        else:
+            ticket = ticket_or_id
+            
         if not ticket:
             raise ValueError("Ticket not found")
             

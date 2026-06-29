@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Body # pyrefly: i
 
 from sqlalchemy.orm import Session # pyrefly: ignore [missing-import]
 
-from app.api.deps import get_ticket_service, get_db
+from app.api.deps import get_ticket_service, get_db, get_ticket_permission_service
 from app.api.deps.auth import get_current_user
+from app.services.ticket_permission_service import TicketPermissionService
 from app.models.ticket import TicketStatus
 from app.models.user import User
 from app.models.user import User
@@ -70,10 +71,6 @@ def list_tickets(
         offset=offset
     )
 
-
-
-
-
 @router.patch(
     "/{ticket_id}",
     response_model=TicketRead,
@@ -82,15 +79,22 @@ def update_ticket(
     ticket_id: int,
     update_data: TicketUpdate,
     service: TicketService = Depends(get_ticket_service),
+    permission_service: TicketPermissionService = Depends(get_ticket_permission_service),
     current_user: User = Depends(get_current_user),
 ) -> TicketRead:
-    try:
-        return service.update(ticket_id, update_data, current_user)
-    except InvalidTicketTransitionError as e:
+    ticket = service.get_by_id(ticket_id)
+    if not ticket:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ticket not found",
         )
+
+    permission_service.raise_if_denied(
+        permission_service.validate_ticket_update(current_user, ticket, update_data)
+    )
+            
+    try:
+        return service.update(ticket, update_data, current_user)
     except ValueError as e:
         if str(e) == "Ticket not found":
             raise HTTPException(
@@ -160,20 +164,24 @@ def assign_ticket(
     ticket_id: int,
     assignee_id: int = Body(..., embed=True),
     db: Session = Depends(get_db),
+    service: TicketService = Depends(get_ticket_service),
+    permission_service: TicketPermissionService = Depends(get_ticket_permission_service),
     current_user: User = Depends(get_current_user),
 ) -> TicketRead:
-    try:
-        return TicketService(db).assign_ticket(ticket_id, assignee_id, current_user)
-    except InsufficientPermissionsError as e:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions",
-        )
-    except ValueError as e:
+    ticket = service.get_by_id(ticket_id)
+    if not ticket:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
+            detail="Ticket not found",
         )
+
+    if ticket.assigned_to_id is None:
+        permission_service.raise_if_denied(permission_service.can_assign(current_user, ticket))
+    else:
+        permission_service.raise_if_denied(permission_service.can_change_assignee(current_user, ticket))
+
+    try:
+        return service.assign_ticket(ticket, assignee_id, current_user)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

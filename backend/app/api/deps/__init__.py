@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session  # pyrefly: ignore [missing-import]
 
 from app.db.session import get_db
 from app.services import UserService, RoleService, UserRoleService, TicketService
+from app.services.ticket_permission_service import TicketPermissionService
 
 
 def get_user_service(
@@ -29,3 +30,6 @@ def get_ticket_service(
     db: Session = Depends(get_db),
 ) -> TicketService:
     return TicketService(db)
+
+def get_ticket_permission_service() -> TicketPermissionService:
+    return TicketPermissionService()

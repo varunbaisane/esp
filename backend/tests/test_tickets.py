@@ -96,7 +96,7 @@ def test_invalid_transition(client):
     
     # OPEN -> CLOSED
     res = client.patch(f"/api/v1/tickets/{ticket['id']}", json={"status": "CLOSED"})
-    assert res.status_code == 400
+    assert res.status_code == 409
 
 def test_dashboard_queries(client):
     users = setup_users(client, ["dash1@example.com", "dash2@example.com"])
