@@ -43,7 +43,7 @@ A full-stack engineering operations platform that models real-world support work
 
 ### Production URLs
 
-- **Frontend**: https://esp-varun-baisanes-projects.vercel.app/
+- **Frontend**: https://esp-snowy-two.vercel.app/
 - **Backend API**: https://esp-0uqk.onrender.com
 - **Swagger UI**: https://esp-0uqk.onrender.com/docs
 
