@@ -1,12 +1,14 @@
 import type { CurrentUser } from "../types/auth";
 import type { TicketLevel } from "../types/ticket";
 
+import { Roles } from "../types/auth";
+
 const ROLE_RANK: Record<string, number> = {
-  "SUPPORT_L1": 1,
-  "SUPPORT_L2": 2,
-  "SUPPORT_L3": 3,
-  "ENGINEERING_MANAGER": 4,
-  "ADMIN": 5,
+  [Roles.SUPPORT_L1]: 1,
+  [Roles.SUPPORT_L2]: 2,
+  [Roles.SUPPORT_L3]: 3,
+  [Roles.ENGINEERING_MANAGER]: 4,
+  [Roles.ADMIN]: 5,
 };
 
 export const getUserHighestRank = (user: { roles?: (string | { name: string })[] } | null): number => {
