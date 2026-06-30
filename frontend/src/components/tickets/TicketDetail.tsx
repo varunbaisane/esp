@@ -10,7 +10,7 @@ import { TicketMetadata } from "./TicketMetadata";
 import { Card } from "../common/Card";
 import { ConfirmationModal } from "../common/ConfirmationModal";
 import { AssignTicketModal } from "../common/AssignTicketModal";
-import { canEscalateTicket, canClaimTicket } from "../../utils/permissions";
+import { canClaimTicket } from "../../utils/permissions";
 import { getTicketPermissions } from "../../lib/ticketPermissions";
 
 interface TicketDetailProps {
@@ -25,10 +25,10 @@ interface TicketDetailProps {
 export const TicketDetail = ({ ticket, currentUser, onUpdate, onEscalate, onClaim, onAssign }: TicketDetailProps) => {
   const [isEscalationModalOpen, setIsEscalationModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const canEscalate = canEscalateTicket(currentUser, ticket.support_level);
   const canClaim = canClaimTicket(currentUser, ticket.support_level);
   const nextLevel = ticket.support_level === "L1" ? "L2" : "L3";
   const permissions = useMemo(() => getTicketPermissions(currentUser, ticket), [currentUser, ticket]);
+  const canEscalate = permissions.canEscalate;
 
   const [activeAction, setActiveAction] = useState<string | null>(null);
 

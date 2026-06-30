@@ -6,4 +6,5 @@ export interface TicketPermissions {
     canClose: boolean;
     canReopen: boolean;
     canEditPriority: boolean;
+    canEscalate: boolean;
 }
