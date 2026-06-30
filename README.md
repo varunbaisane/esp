@@ -30,6 +30,7 @@ A full-stack engineering operations platform that models real-world support work
 | Auditability | Immutable Audit Logs, Activity Center |
 | Operations | Workspace, Team Operations Dashboard |
 | Analytics | SLA Compliance, Resolution Metrics, Workload Distribution |
+| Demo Data | Enterprise-grade deterministic dataset with 50+ realistic tickets, audit history, and SLA-aware workloads |
 
 ---
 
@@ -212,6 +213,7 @@ engineering-support-platform
 │   │   ├── models       # SQLAlchemy ORM models
 │   │   ├── repositories # Data access layer
 │   │   ├── schemas      # Pydantic validation models
+│   │   ├── seed         # Deterministic demo dataset catalogs
 │   │   └── services     # Business logic
 │   ├── migrations       # Alembic migrations
 │   └── scripts          # Database seeding scripts
@@ -350,7 +352,7 @@ Apply database migrations:
 poetry run alembic upgrade head
 ```
 
-Seed the database with the demo organization:
+Seed the database with the enterprise demo dataset (generates a production-quality environment with 55 realistic tickets, audit logs, and engineer workloads):
 ```bash
 poetry run python scripts/seed_demo_data.py
 ```
