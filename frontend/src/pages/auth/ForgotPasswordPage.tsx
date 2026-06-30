@@ -5,6 +5,7 @@ import { AuthLayout } from "../../components/auth/AuthLayout";
 import { OTPInput } from "../../components/auth/OTPInput";
 import { Button } from "../../components/common/Button";
 import { COLORS } from "../../styles/design-tokens";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 const RequirementItem = ({ fulfilled, text }: { fulfilled: boolean, text: string }) => (
   <li className={`flex items-center gap-2 transition-colors duration-200 ${fulfilled ? 'text-green-600' : ''}`}>
@@ -29,6 +30,7 @@ export const ForgotPasswordPage = () => {
   const [newPassword, setNewPassword] = useState("");
 
   const [step, setStep] = useState<"request" | "reset">("request");
+  useDocumentTitle(step === "reset" ? "Reset Password" : "Forgot Password");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);

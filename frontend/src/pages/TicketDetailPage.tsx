@@ -11,6 +11,7 @@ import { CardSkeleton } from "../components/common/CardSkeleton";
 import { TimelineSkeleton } from "../components/common/TimelineSkeleton";
 import { PageContainer } from "../components/layout/PageContainer";
 import { AuthContext } from "../context/AuthContext";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const TicketDetailPage = () => {
   const authContext = useContext(AuthContext);
@@ -20,6 +21,8 @@ export const TicketDetailPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState<boolean>(false);
+
+  useDocumentTitle(ticket ? `Ticket #${ticket.id}` : id ? `Ticket #${id}` : "Ticket");
 
   useEffect(() => {
     const fetchTicket = async () => {

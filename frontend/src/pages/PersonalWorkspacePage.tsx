@@ -8,8 +8,10 @@ import { activityService } from "../services/activityService";
 import type { AuditLogSummary } from "../types/audit";
 import { StateMessage } from "../components/common/StateMessage";
 import { PageContainer } from "../components/layout/PageContainer";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const PersonalWorkspacePage = () => {
+  useDocumentTitle("My Workspace");
   const [workspace, setWorkspace] = useState<WorkspaceResponse | null>(null);
   const [myActivity, setMyActivity] = useState<AuditLogSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

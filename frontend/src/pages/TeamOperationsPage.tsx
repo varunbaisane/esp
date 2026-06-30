@@ -7,8 +7,10 @@ import { StateMessage } from "../components/common/StateMessage";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Card } from "../components/common/Card";
 import { TableSkeleton } from "../components/common/TableSkeleton";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const TeamOperationsPage = () => {
+  useDocumentTitle("Team Operations");
   const [data, setData] = useState<TeamOperationsResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

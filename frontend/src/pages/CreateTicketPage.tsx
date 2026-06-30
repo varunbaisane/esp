@@ -6,8 +6,10 @@ import type { TicketCreate } from "../types/ticket";
 import { TicketForm } from "../components/tickets/TicketForm";
 import { FormError } from "../components/common/FormError";
 import { PageContainer } from "../components/layout/PageContainer";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const CreateTicketPage = () => {
+  useDocumentTitle("Create Ticket");
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

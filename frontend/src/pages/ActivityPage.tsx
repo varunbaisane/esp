@@ -4,8 +4,10 @@ import { ActivityFeed } from "../components/activity/ActivityFeed";
 import { PaginationControls } from "../components/activity/PaginationControls";
 import { activityService } from "../services/activityService";
 import type { AuditLogSummary } from "../types/audit";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const ActivityPage = () => {
+  useDocumentTitle("Activity");
   const [logs, setLogs] = useState<AuditLogSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);

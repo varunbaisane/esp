@@ -9,8 +9,10 @@ import { StatusDistributionChart } from "../components/analytics/StatusDistribut
 import { PriorityDistributionChart } from "../components/analytics/PriorityDistributionChart";
 import { LevelDistributionChart } from "../components/analytics/LevelDistributionChart";
 import { WorkloadDistributionChart } from "../components/analytics/WorkloadDistributionChart";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const AnalyticsPage = () => {
+  useDocumentTitle("Analytics");
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

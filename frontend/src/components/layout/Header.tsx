@@ -22,7 +22,8 @@ export const Header = ({ onMenuClick, onLogout }: HeaderProps) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <Link to="/" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="ESP Logo" className="w-8 h-8 object-contain flex-shrink-0" />
               <span className="font-bold text-gray-900 text-xl tracking-tight">ESP</span>
               <span className="hidden sm:block text-sm font-medium text-gray-500 tracking-wider uppercase border-l border-gray-300 pl-3">Engineering Support Platform</span>
             </Link>

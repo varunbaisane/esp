@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { Button } from "../../components/common/Button";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 
 export const RegistrationSuccessPage = () => {
+  useDocumentTitle("Registration Successful");
   return (
     <AuthLayout
       title="Registration Successful"

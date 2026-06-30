@@ -11,8 +11,10 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
 import { DEFAULT_PAGE_SIZE } from "../types/ticket";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const TicketsPage = () => {
+  useDocumentTitle("Tickets");
   const [searchParams, setSearchParams] = useSearchParams();
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
   const [total, setTotal] = useState<number>(0);

@@ -9,8 +9,10 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { activityService } from "../services/activityService";
 import type { AuditLogSummary } from "../types/audit";
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const DashboardPage = () => {
+  useDocumentTitle("Global Operations");
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<AuditLogSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

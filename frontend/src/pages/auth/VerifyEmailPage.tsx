@@ -5,8 +5,10 @@ import { AuthLayout } from "../../components/auth/AuthLayout";
 import { OTPInput } from "../../components/auth/OTPInput";
 import { Button } from "../../components/common/Button";
 import { COLORS } from "../../styles/design-tokens";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 export const VerifyEmailPage = () => {
+  useDocumentTitle("Verify Email");
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState(location.state?.email || "");

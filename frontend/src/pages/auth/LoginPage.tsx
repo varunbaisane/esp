@@ -2,8 +2,10 @@ import { Link } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { LoginForm } from "../../components/auth/LoginForm";
 import { COLORS } from "../../styles/design-tokens";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 export const LoginPage = () => {
+  useDocumentTitle("Login");
   return (
     <AuthLayout
       title="Sign in to your account"
