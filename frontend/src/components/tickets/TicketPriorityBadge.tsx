@@ -15,6 +15,21 @@ export const getPriorityBadgeStyle = (priority: TicketPriority) => {
   }
 };
 
+export const getPriorityTextColor = (priority: TicketPriority) => {
+  switch (priority) {
+    case "CRITICAL":
+      return "text-red-700";
+    case "HIGH":
+      return "text-orange-700";
+    case "MEDIUM":
+      return "text-yellow-700";
+    case "LOW":
+      return "text-gray-700";
+    default:
+      return "text-gray-700";
+  }
+};
+
 export const TicketPriorityBadge = ({ priority }: { priority: TicketPriority }) => {
 
   return (

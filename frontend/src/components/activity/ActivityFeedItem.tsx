@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { AuditLogSummary } from "../../types/audit";
 import { getAuditActionText, renderAuditMetadata } from "../../utils/auditFormatting";
 import { UserAvatar } from "../common/UserAvatar";
+import { formatRelativeDateTime } from "../../lib/dateTime";
 
 interface ActivityFeedItemProps {
   log: AuditLogSummary;
@@ -26,13 +27,7 @@ export const ActivityFeedItem = React.memo(({ log }: ActivityFeedItemProps) => {
             </span>
           </div>
           <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
-            {new Intl.DateTimeFormat('en-US', { 
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric', 
-              minute: 'numeric', 
-              hour12: true 
-            }).format(new Date(log.created_at))}
+            {formatRelativeDateTime(log.created_at)}
           </span>
         </div>
         {renderAuditMetadata(log as any)}

@@ -6,6 +6,7 @@ import { TicketPriorityBadge } from "./TicketPriorityBadge";
 import { TicketLevelBadge } from "./TicketLevelBadge";
 import { TicketSLABadge } from "./TicketSLABadge";
 import { UserAvatar } from "../common/UserAvatar";
+import { formatRelativeDateTime } from "../../lib/dateTime";
 
 interface TicketRowProps {
   ticket: TicketSummary;
@@ -14,12 +15,7 @@ interface TicketRowProps {
 export const TicketRow = React.memo(({ ticket }: TicketRowProps) => {
   const navigate = useNavigate();
 
-  // Format date
-  const createdDate = new Date(ticket.created_at).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+  const createdDate = formatRelativeDateTime(ticket.created_at);
 
   return (
     <tr

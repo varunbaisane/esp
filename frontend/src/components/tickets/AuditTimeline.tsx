@@ -5,6 +5,7 @@ import { Card } from "../common/Card";
 import { getAuditActionText, renderAuditMetadata } from "../../utils/auditFormatting";
 import { UserAvatar } from "../common/UserAvatar";
 import { TimelineSkeleton } from "../common/TimelineSkeleton";
+import { formatRelativeDateTime } from "../../lib/dateTime";
 
 interface AuditTimelineProps {
   ticketId: number;
@@ -54,8 +55,8 @@ export const AuditTimeline = ({ ticketId }: AuditTimelineProps) => {
           <div key={log.id} className="relative pl-6">
             <div className="absolute w-3 h-3 bg-white border-2 border-indigo-400 rounded-full -left-[7px] top-1.5" />
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-gray-400 font-medium">
-                {new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }).format(new Date(log.created_at))}
+              <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                {formatRelativeDateTime(log.created_at)}
               </span>
               <div className="text-sm text-gray-800 flex items-center gap-2">
                 <UserAvatar name={log.actor_name} size="sm" />

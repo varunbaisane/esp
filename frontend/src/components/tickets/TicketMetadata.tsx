@@ -1,38 +1,20 @@
 import type { TicketRead } from "../../types/ticket";
 import { TicketSLABadge } from "./TicketSLABadge";
 import { UserAvatar } from "../common/UserAvatar";
+import { formatRelativeDateTime } from "../../lib/dateTime";
 
 interface TicketMetadataProps {
   ticket: TicketRead;
 }
 
 export const TicketMetadata = ({ ticket }: TicketMetadataProps) => {
-  const createdDate = new Date(ticket.created_at).toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  const updatedDate = new Date(ticket.updated_at).toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const createdDate = formatRelativeDateTime(ticket.created_at);
+  const updatedDate = formatRelativeDateTime(ticket.updated_at);
 
   const assigneeText = ticket.assigned_to_name ? `${ticket.assigned_to_name} (#${ticket.assigned_to_id})` : "Unassigned";
   const creatorText = ticket.created_by_name ? `${ticket.created_by_name} (#${ticket.created_by_id})` : `User #${ticket.created_by_id}`;
 
-  const slaDueDate = new Date(ticket.sla_due_at).toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const slaDueDate = formatRelativeDateTime(ticket.sla_due_at);
 
   const getRemainingTimeText = () => {
     if (ticket.status === "RESOLVED" || ticket.status === "CLOSED") {
