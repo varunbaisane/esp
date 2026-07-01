@@ -37,6 +37,8 @@ class CurrentUserResponse(BaseModel):
     email: str
     full_name: str
     roles: list[str]
+    pending_approval: bool
+    can_access_application: bool
 
 class RegisterResponse(BaseModel):
     verification_required: bool = True

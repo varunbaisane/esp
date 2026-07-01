@@ -187,14 +187,20 @@ def get_me(
     db: Session = Depends(get_db),
 ):
     """
-    Get current user profile including roles.
+    Get current user profile including roles and state.
     """
+    from app.services.user_state_service import UserStateService
+    
     roles = UserRoleRepository(db).list_roles_for_user(current_user.id)
     role_names = [role.name for role in roles]
+    
+    state_service = UserStateService(db)
     
     return CurrentUserResponse(
         id=current_user.id,
         email=current_user.email,
         full_name=current_user.full_name,
-        roles=role_names
+        roles=role_names,
+        pending_approval=state_service.is_pending_approval(current_user),
+        can_access_application=state_service.can_access_application(current_user),
     )
