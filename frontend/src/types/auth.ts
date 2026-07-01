@@ -32,6 +32,8 @@ export interface CurrentUser {
   email: string;
   full_name: string;
   roles: string[];
+  pending_approval: boolean;
+  can_access_application: boolean;
 }
 
 export interface AuthState {
@@ -44,6 +46,7 @@ export interface AuthState {
 export interface AuthContextType extends AuthState {
   login: (token: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
+  refreshStatus: () => Promise<void>;
 }
 
 export interface ResetPasswordRequest {

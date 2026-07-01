@@ -17,6 +17,7 @@ const RegisterPage = lazy(() => import("./pages/auth/RegisterPage").then(module 
 const RegistrationSuccessPage = lazy(() => import("./pages/auth/RegistrationSuccessPage").then(module => ({ default: module.RegistrationSuccessPage })));
 const VerifyEmailPage = lazy(() => import("./pages/auth/VerifyEmailPage").then(module => ({ default: module.VerifyEmailPage })));
 const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage").then(module => ({ default: module.ForgotPasswordPage })));
+const PendingApprovalPage = lazy(() => import("./pages/PendingApprovalPage").then(module => ({ default: module.PendingApprovalPage })));
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/registration-success" element={<RegistrationSuccessPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
           {/* Protected Portal Routes */}
           <Route path="/*" element={

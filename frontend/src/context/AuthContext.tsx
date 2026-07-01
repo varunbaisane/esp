@@ -61,8 +61,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  const refreshStatus = async () => {
+    if (!token) return;
+    try {
+      const user = await authService.me();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error("Failed to refresh user status", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ token, currentUser, isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ token, currentUser, isAuthenticated, isLoading, login, logout, refreshStatus }}>
       {children}
     </AuthContext.Provider>
   );
