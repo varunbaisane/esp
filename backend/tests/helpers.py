@@ -8,7 +8,7 @@ def create_user(client: TestClient, email: str = "test@example.com", full_name: 
     assert response.status_code == 201
     return response.json()
 
-def create_role(client: TestClient, name: str = "Admin") -> dict:
+def create_role(client: TestClient, name: str = "SUPPORT_L1") -> dict:
     response = client.post(
         "/api/v1/roles",
         json={"name": name}
@@ -24,12 +24,19 @@ def ensure_role(client: TestClient, name: str = "SUPPORT_L1") -> int:
     return create_role(client, name)["id"]
 
 def assign_role(client: TestClient, user_id: int, role_id: int) -> dict:
-    response = client.post(
+    roles = client.get("/api/v1/roles").json()
+    role_name = None
+    for r in roles:
+        if r["id"] == role_id:
+            role_name = r["name"]
+            break
+            
+    response = client.patch(
         f"/api/v1/users/{user_id}/roles",
-        json={"role_id": role_id}
+        json={"operation": "assign", "role_code": role_name}
     )
-    assert response.status_code == 201
-    return response.json()
+    assert response.status_code == 200, response.text
+    return {"user_id": user_id, "role_id": role_id}
 
 def create_ticket(client: TestClient, created_by_id: int, title: str = "Test Ticket", description: str = "Test Desc") -> dict:
     response = client.post(

@@ -11,8 +11,15 @@ const ROLE_RANK: Record<string, number> = {
   [Roles.ADMIN]: 5,
 };
 
-export const getUserHighestRank = (user: { roles?: (string | { name: string })[] } | null): number => {
-  if (!user || !user.roles || user.roles.length === 0) return 0;
+export const getUserHighestRank = (user: { roles?: (string | { name: string })[], current_role?: { code: string } | null } | null): number => {
+  if (!user) return 0;
+  
+  if ('current_role' in user && user.current_role) {
+    return ROLE_RANK[user.current_role.code] || 0;
+  }
+  
+  if (!user.roles || user.roles.length === 0) return 0;
+  
   return Math.max(...user.roles.map(role => {
     const roleName = typeof role === 'string' ? role : role.name;
     return ROLE_RANK[roleName] || 0;

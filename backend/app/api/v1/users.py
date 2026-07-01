@@ -49,54 +49,49 @@ def get_user(
     return user
 
 
+from typing import Optional
+from app.api.deps import get_user_service, get_user_management_service, get_role_provisioning_service
+from app.services.user_management_service import UserManagementService
+from app.services.role_provisioning_service import RoleProvisioningService
+from app.schemas.user_management import UserSummaryResponse, RoleOperationRequest
+from app.core.roles import RoleOperation
+
 @router.get(
     "",
-    response_model=list[UserRead],
+    response_model=list[UserSummaryResponse],
 )
 def list_users(
-    service: UserService = Depends(get_user_service),
-    _: User = Depends(get_current_user),
-) -> list[UserRead]:
-    return service.list()
+    search: Optional[str] = None,
+    status: Optional[str] = None,
+    role: Optional[str] = None,
+    service: UserManagementService = Depends(get_user_management_service),
+    current_user: User = Depends(require_roles(["admin", "engineering_manager"])),
+) -> list[UserSummaryResponse]:
+    return service.list_users(requester=current_user, search=search, status=status, role=role)
 
-@router.post(
+@router.patch(
     "/{user_id}/roles",
-    response_model=UserRoleRead,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
 )
-def assign_role_to_user(
+def operate_role_on_user(
     user_id: int,
-    assignment: UserRoleAssign,
-    service: UserRoleService = Depends(get_user_role_service),
-    _: User = Depends(require_roles(["admin"])),
-) -> UserRoleRead:
+    request: RoleOperationRequest,
+    service: RoleProvisioningService = Depends(get_role_provisioning_service),
+    current_user: User = Depends(require_roles(["admin", "engineering_manager"])),
+):
     try:
-        return service.assign_role(user_id, assignment.role_id)
+        if request.operation == RoleOperation.ASSIGN:
+            service.assign_role(user_id, request.role_code, current_user)
+        elif request.operation == RoleOperation.REMOVE:
+            service.remove_role(user_id, request.role_code, current_user)
+        return {"status": "success"}
     except ValueError as e:
-        if str(e) in ("User not found", "Role not found"):
+        if "not found" in str(e).lower():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=str(e),
             )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-
-
-@router.get(
-    "/{user_id}/roles",
-    response_model=list[RoleSummary],
-)
-def get_user_roles(
-    user_id: int,
-    service: UserRoleService = Depends(get_user_role_service),
-    _: User = Depends(require_roles(["admin"])),
-) -> list[RoleSummary]:
-    try:
-        return service.get_user_roles(user_id)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { TicketFilters as FiltersType } from "../../types/ticket";
 import { userService } from "../../services/userService";
-import type { User } from "../../types/user";
+import type { UserSummaryResponse } from "../../types/user";
 
 interface TicketFiltersProps {
   filters: FiltersType;
@@ -9,7 +9,7 @@ interface TicketFiltersProps {
 }
 
 export const TicketFilters = ({ filters, onChange }: TicketFiltersProps) => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserSummaryResponse[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -106,7 +106,7 @@ export const TicketFilters = ({ filters, onChange }: TicketFiltersProps) => {
             {value: "assigned", label: "Assigned"},
             {value: "unassigned", label: "Unassigned"},
             {value: "mine", label: "Me"},
-            ...users.map(u => ({ value: u.id.toString(), label: u.full_name }))
+            ...users.map(u => ({ value: u.id.toString(), label: u.name }))
           ]} 
         />
 

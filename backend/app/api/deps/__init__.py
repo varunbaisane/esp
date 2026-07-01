@@ -33,3 +33,12 @@ def get_ticket_service(
 
 def get_ticket_permission_service() -> TicketPermissionService:
     return TicketPermissionService()
+
+from app.services.user_management_service import UserManagementService
+from app.services.role_provisioning_service import RoleProvisioningService
+
+def get_user_management_service(db: Session = Depends(get_db)) -> UserManagementService:
+    return UserManagementService(db)
+
+def get_role_provisioning_service(db: Session = Depends(get_db)) -> RoleProvisioningService:
+    return RoleProvisioningService(db)

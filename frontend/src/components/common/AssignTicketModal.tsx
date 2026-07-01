@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import type { User } from "../../types/user";
+import type { UserSummaryResponse } from "../../types/user";
 import { userService } from "../../services/userService";
 
 import type { TicketLevel } from "../../types/ticket";
@@ -20,7 +20,7 @@ export const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
   onClose,
   onAssign,
 }) => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserSummaryResponse[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | "">("");
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -106,7 +106,7 @@ export const AssignTicketModal: React.FC<AssignTicketModalProps> = ({
                 })
                 .map((user) => (
                   <option key={user.id} value={user.id}>
-                    {user.full_name} ({user.email})
+                    {user.name} ({user.email})
                   </option>
               ))}
             </select>
