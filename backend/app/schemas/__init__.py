@@ -4,3 +4,4 @@ from app.schemas.user_role import UserRoleAssign, RoleSummary, UserRoleRead, Use
 from app.schemas.ticket import TicketCreate, TicketSummary, TicketRead, TicketAssign, TicketStatusUpdate, TicketStats  # noqa: F401
 
 from app.schemas.auth import RegisterRequest, LoginRequest  # noqa: F401
+from app.schemas.notification import NotificationResponse, NotificationListResponse, UnreadCountResponse  # noqa: F401

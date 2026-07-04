@@ -4,3 +4,4 @@ from app.services.user_role_service import UserRoleService  # noqa: F401
 from app.services.ticket_service import TicketService  # noqa: F401
 
 from app.services.auth_service import AuthService  # noqa: F401
+from app.services.notification_service import NotificationService  # noqa: F401

@@ -42,3 +42,9 @@ def get_user_management_service(db: Session = Depends(get_db)) -> UserManagement
 
 def get_role_provisioning_service(db: Session = Depends(get_db)) -> RoleProvisioningService:
     return RoleProvisioningService(db)
+
+from app.services.notification_service import NotificationService
+from app.repositories.notification_repository import NotificationRepository
+
+def get_notification_service(db: Session = Depends(get_db)) -> NotificationService:
+    return NotificationService(NotificationRepository(db))
