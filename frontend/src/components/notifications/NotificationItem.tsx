@@ -25,7 +25,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
   const { markAsRead } = useAppNotifications();
   const { currentUser } = useAuth();
   
-  const isAdmin = currentUser?.roles?.some(r => r.name === 'ADMIN') ?? false;
+  const isAdmin = currentUser?.roles?.includes('ADMIN') ?? false;
 
   const handleClick = async () => {
     // Navigate immediately if possible
