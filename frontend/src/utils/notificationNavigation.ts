@@ -1,4 +1,4 @@
-export const getNotificationLink = (entityType: string | null, entityId: number | null): string | null => {
+export const getNotificationLink = (entityType: string | null, entityId: number | null, isAdmin: boolean = false): string | null => {
   if (!entityType || !entityId) {
     return null;
   }
@@ -9,7 +9,10 @@ export const getNotificationLink = (entityType: string | null, entityId: number 
     case 'ticket':
       return `/tickets/${entityId}`;
     case 'user':
-      return `/admin/users/${entityId}`;
+      if (isAdmin) {
+        return `/admin/users/${entityId}`;
+      }
+      return '/workspace';
     default:
       // Gracefully handle unknown entity types
       return '/notifications';

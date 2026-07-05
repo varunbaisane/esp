@@ -1,16 +1,19 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import delete
+from sqlalchemy.orm import Session # pyrefly: ignore [missing-import]
+from sqlalchemy import delete # pyrefly: ignore [missing-import]
 
 from app.models.user import User
 from app.models.role import Role
 from app.models.user_role import UserRole
 from app.repositories import UserRoleRepository
+from app.repositories.notification_repository import NotificationRepository
+from app.services.notification_service import NotificationService
 from app.core.roles import ROLE_HIERARCHY, get_role_rank
 
 class RoleProvisioningService:
     def __init__(self, db: Session):
         self.db = db
         self.user_role_repo = UserRoleRepository(db)
+        self._notification_service = NotificationService(NotificationRepository(db))
 
     def _get_requester_rank(self, requester: User) -> int:
         roles = self.user_role_repo.list_roles_for_user(requester.id)
@@ -51,6 +54,9 @@ class RoleProvisioningService:
         # Check last admin guard before replacing roles
         self._check_last_admin_guard(target_user_id)
 
+        current_roles = self.user_role_repo.list_roles_for_user(target_user_id)
+        had_no_roles = len(current_roles) == 0
+
         # Replace existing engineering roles
         self.db.execute(
             delete(UserRole).where(UserRole.user_id == target_user_id)
@@ -61,6 +67,11 @@ class RoleProvisioningService:
         new_assignment = UserRole(user_id=target_user_id, role_id=role.id)
         self.db.add(new_assignment)
         self.db.commit()
+        
+        if had_no_roles:
+            self._notification_service.notify_first_role_assigned(target_user, role.name, current_user)
+        else:
+            self._notification_service.notify_role_assigned(target_user, role.name, current_user)
         
         # TODO: audit_logger.log(action="ASSIGN_ROLE", target=target_user_id, role=role_code, by=current_user.id)
         
@@ -95,6 +106,8 @@ class RoleProvisioningService:
             
         self.db.delete(assignment)
         self.db.commit()
+
+        self._notification_service.notify_role_removed(target_user, role.name, current_user)
         
         # TODO: audit_logger.log(action="REMOVE_ROLE", target=target_user_id, role=role_code, by=current_user.id)
         

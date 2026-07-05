@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session  # pyrefly: ignore [missing-import]
 from app.models.ticket import Ticket, TicketStatus, TicketPriority
 from app.repositories.ticket_repository import TicketRepository
 from app.repositories.user_repository import UserRepository
+from app.repositories.notification_repository import NotificationRepository
 from app.models.user import User
 from app.schemas.ticket import TicketCreate, TicketUpdate
 from app.domain.ticket_workflow import can_transition
@@ -11,6 +12,7 @@ from app.exceptions.ticket import InvalidTicketTransitionError, InvalidEscalatio
 from app.domain.ticket_escalation import get_next_level
 from app.domain.ticket_sla import calculate_sla_due
 from app.services.audit_service import AuditService
+from app.services.notification_service import NotificationService
 
 
 class TicketService:
@@ -19,6 +21,7 @@ class TicketService:
         self._repository = TicketRepository(session)
         self._user_repository = UserRepository(session)
         self._audit_service = AuditService(session)
+        self._notification_service = NotificationService(NotificationRepository(session))
 
     def create(self, ticket_data: TicketCreate, user_id: int) -> Ticket:
         user = self._user_repository.get_by_id(user_id)
@@ -173,11 +176,11 @@ class TicketService:
                 ticket.closed_at = None
 
             self._audit_service.log_ticket_status_changed(actor, ticket, old_status, update_data.status.value)
+            self._notification_service.notify_ticket_status_changed(ticket, actor)
             
-        if update_data.priority is not None:
-            # We don't have an audit log explicitly for priority in the specs, but we could add one if desired.
-            # Leaving this alone per requirements.
+        if update_data.priority is not None and update_data.priority != ticket.priority:
             ticket.priority = update_data.priority
+            self._notification_service.notify_ticket_priority_changed(ticket, actor)
             
         old_assignee_id = ticket.assigned_to_id
         if update_data.assigned_to_id is not None and update_data.assigned_to_id != old_assignee_id:
@@ -186,6 +189,11 @@ class TicketService:
                 raise ValueError("Assignee not found")
             ticket.assigned_to_id = update_data.assigned_to_id
             self._audit_service.log_ticket_assigned(actor, ticket, old_assignee_id, update_data.assigned_to_id)
+            
+            if old_assignee_id is None:
+                self._notification_service.notify_ticket_assigned(ticket, actor, update_data.assigned_to_id)
+            else:
+                self._notification_service.notify_ticket_reassigned(ticket, actor, update_data.assigned_to_id)
 
         try:
             self._session.commit()
@@ -211,6 +219,7 @@ class TicketService:
             
         ticket.assigned_to_id = actor.id
         self._audit_service.log_ticket_claimed(actor, ticket)
+        self._notification_service.notify_ticket_assigned(ticket, actor, actor.id)
         
         try:
             self._session.commit()
@@ -247,6 +256,11 @@ class TicketService:
             
         ticket.assigned_to_id = assignee_id
         self._audit_service.log_ticket_reassigned(actor, ticket, old_assignee_name, target_user.full_name)
+        
+        if old_assignee_id is None:
+            self._notification_service.notify_ticket_assigned(ticket, actor, assignee_id)
+        else:
+            self._notification_service.notify_ticket_reassigned(ticket, actor, assignee_id)
         
         try:
             self._session.commit()

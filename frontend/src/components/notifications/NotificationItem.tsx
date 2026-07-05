@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Notification } from '../../types/notification';
 import { useAppNotifications } from '../../context/AppNotificationContext';
 import { getNotificationLink } from '../../utils/notificationNavigation';
+import { useAuth } from '../../hooks/useAuth';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -22,10 +23,13 @@ const getRelativeTime = (dateStr: string) => {
 export const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => {
   const navigate = useNavigate();
   const { markAsRead } = useAppNotifications();
+  const { currentUser } = useAuth();
+  
+  const isAdmin = currentUser?.roles?.some(r => r.name === 'ADMIN') ?? false;
 
   const handleClick = async () => {
     // Navigate immediately if possible
-    const link = getNotificationLink(notification.entity_type, notification.entity_id);
+    const link = getNotificationLink(notification.entity_type, notification.entity_id, isAdmin);
     if (link) {
       navigate(link);
     }
@@ -66,7 +70,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
         <p className="text-sm font-medium text-slate-900 mb-1">
           {notification.title}
         </p>
-        <p className="text-sm text-slate-600 line-clamp-2">
+        <p className="text-sm text-slate-600 line-clamp-3">
           {notification.message}
         </p>
         <p className="text-xs text-slate-400 mt-2">
