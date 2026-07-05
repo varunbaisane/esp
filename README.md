@@ -323,9 +323,25 @@ cd engineering-support-platform
 ```
 
 ### 2. Database Setup
-Start the PostgreSQL container:
+
+ESP uses dedicated environments to prevent accidental data loss:
+
+#### Databases
+- **Development**
+  - Container: `esp-postgres-dev`
+  - Database: `esp_db`
+- **Testing**
+  - Container: `esp-postgres-test`
+  - Database: `esp_test_db`
+- **Production**
+  - Neon PostgreSQL
+
+> [!WARNING]
+> Never point `backend/.env.test` at the development database (`esp_db`). The test suite aggressively truncates the database, which will result in data loss if configured incorrectly.
+
+Start the PostgreSQL containers:
 ```bash
-docker-compose up -d db
+docker-compose up -d
 ```
 
 ### 3. Backend Setup

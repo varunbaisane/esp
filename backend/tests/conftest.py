@@ -13,7 +13,7 @@ from app.main import app
 from app.db.session import get_db
 from app.db.base import Base
 
-engine = create_engine(os.environ.get("DATABASE_URL", "postgresql+psycopg://esp:esp_dev_password@localhost:5432/esp_db"))
+engine = create_engine(os.environ.get("DATABASE_URL", "postgresql+psycopg://esp:esp_test_password@localhost:5433/esp_test_db"))
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 @pytest.fixture(scope="session", autouse=True)
@@ -24,6 +24,9 @@ def setup_test_db():
 
 @pytest.fixture(autouse=True)
 def clean_db():
+    if engine.url.database != "esp_test_db":
+        raise AssertionError(f"FATAL: Attempting to wipe non-test database! ({engine.url.database})")
+    
     # Truncate tables before each test dynamically
     with engine.begin() as conn:
         tables = ", ".join(table.name for table in Base.metadata.sorted_tables)
