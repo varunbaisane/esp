@@ -14,6 +14,7 @@ from app.core.notification_templates import (
     build_role_removed,
     build_first_role_assigned,
 )
+from enum import Enum
 
 class NotificationService:
     def __init__(self, notification_repo: NotificationRepository):
@@ -39,17 +40,6 @@ class NotificationService:
             entity_id=entity_id,
         )
         created_notification = self.notification_repo.create(notification)
-        
-        # NOTE:
-        # NotificationService is the single entry point for notification generation.
-        #
-        # Future delivery channels (WebSocket, Email, Browser Push, Digest)
-        # should integrate here rather than individual business services.
-        
-        # TODO:
-        # Prevent duplicate notifications if the same domain event
-        # is retried or replayed in the future.
-        
         return created_notification
 
     def _notify(
@@ -76,7 +66,7 @@ class NotificationService:
         )
 
     def notify_ticket_assigned(self, ticket: Ticket, actor: User, assignee_id: int) -> Optional[Notification]:
-        content = build_ticket_assigned(actor_name=actor.full_name, ticket=ticket)
+        content = build_ticket_assigned(actor_name=str(actor.full_name), ticket=ticket)
         return self._notify(
             recipient_id=assignee_id,
             actor_id=actor.id,
@@ -87,7 +77,7 @@ class NotificationService:
         )
 
     def notify_ticket_reassigned(self, ticket: Ticket, actor: User, assignee_id: int) -> Optional[Notification]:
-        content = build_ticket_reassigned(actor_name=actor.full_name, ticket=ticket)
+        content = build_ticket_reassigned(actor_name=str(actor.full_name), ticket=ticket)
         return self._notify(
             recipient_id=assignee_id,
             actor_id=actor.id,
@@ -98,11 +88,18 @@ class NotificationService:
         )
 
     def notify_ticket_status_changed(self, ticket: Ticket, actor: User) -> Optional[Notification]:
-        if not ticket.assigned_to_id:
+        assignee_id = ticket.assigned_to_id
+        if not assignee_id:
             return None
-        content = build_ticket_status_changed(actor_name=actor.full_name, ticket=ticket, new_status=ticket.status.value)
+        
+        status_str = (
+            ticket.status.value
+            if isinstance(ticket.status, Enum)
+            else str(ticket.status)
+        )
+        content = build_ticket_status_changed(actor_name=str(actor.full_name), ticket=ticket, new_status=status_str)
         return self._notify(
-            recipient_id=ticket.assigned_to_id,
+            recipient_id=assignee_id,
             actor_id=actor.id,
             type=NotificationType.TICKET_STATUS_CHANGED,
             content=content,
@@ -111,11 +108,18 @@ class NotificationService:
         )
 
     def notify_ticket_priority_changed(self, ticket: Ticket, actor: User) -> Optional[Notification]:
-        if not ticket.assigned_to_id:
+        assignee_id = ticket.assigned_to_id
+        if not assignee_id:
             return None
-        content = build_ticket_priority_changed(actor_name=actor.full_name, ticket=ticket, new_priority=ticket.priority.value)
+            
+        priority_str = (
+            ticket.priority.value 
+            if isinstance(ticket.priority, Enum) 
+            else str(ticket.priority)
+        )
+        content = build_ticket_priority_changed(actor_name=str(actor.full_name), ticket=ticket, new_priority=priority_str)
         return self._notify(
-            recipient_id=ticket.assigned_to_id,
+            recipient_id=assignee_id,
             actor_id=actor.id,
             type=NotificationType.TICKET_PRIORITY_CHANGED,
             content=content,

@@ -10,6 +10,7 @@ pytest = "^9.1.0"
 pytest-asyncio = "^1.4.0"
 httpx = "^0.28.1"
 pytest-cov = "^7.1.0"
+mypy = "^2.1.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -25,3 +26,9 @@ psycopg = {version = "^3.1.0", extras = ["binary"]}
 alembic = "^1.13.0"
 pwdlib = {extras = ["argon2"], version = "^0.3.0"}
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
+
+[tool.mypy]
+python_version = "3.14"
+pretty = true
+warn_return_any = true
+warn_unused_configs = true
