@@ -1,28 +1,53 @@
 from app.models.notification import Notification
 from app.core.notification_templates import NotificationContent
 from app.services.email_service import EmailService
+from app.services.notification_preference_service import NotificationPreferenceService
+from app.models.notification_preference import NotificationChannel, NotificationType
 
 class NotificationDeliveryDispatcher:
     """
     Orchestrates the delivery of notifications to secondary channels
     like Email and Browser Hooks. Database persistence is handled upstream.
     """
-    def __init__(self, email_service: EmailService):
+    def __init__(self, email_service: EmailService, preference_service: NotificationPreferenceService):
         self.email_service = email_service
+        self.preference_service = preference_service
+
+    def _dispatch_email(self, notification: Notification, content: NotificationContent) -> None:
+        from app.email.models import EmailMessage
+        
+        if not notification.recipient or not notification.recipient.email:
+            return
+            
+        message = EmailMessage(
+            subject=content.title,
+            to=[notification.recipient.email],
+            text=content.message,
+            html=f"<p>{content.message}</p>"
+        )
+        self.email_service.send(message)
 
     def dispatch(self, notification: Notification, content: NotificationContent) -> None:
         """
         Dispatches the notification event to secondary channels.
-        
-        Business logic for whether to send an email (e.g. checking user preferences)
-        will be added here in future phases.
         """
+        try:
+            notification_type = NotificationType(notification.type)
+        except ValueError:
+            # If the notification type isn't recognized in preferences, default to In-App only.
+            return
+
+        # Mandatory onboarding notifications bypass preferences
+        if notification_type in (NotificationType.WELCOME, NotificationType.FIRST_ROLE_ASSIGNED):
+            self._dispatch_email(notification, content)
+            # Browser delivery
+            pass
+            return
+
         # 1. Email delivery
-        # We assume EmailService is configured correctly.
-        # In a later phase, this will check User Notification Preferences
-        # and we might fetch the User from the database using notification.recipient_id.
-        pass
-        
-        # 2. Browser delivery (placeholder)
-        # WebSockets or Server-Sent Events will integrate here.
-        pass
+        if self.preference_service.is_channel_enabled(notification.recipient_id, notification_type, NotificationChannel.EMAIL):
+            self._dispatch_email(notification, content)
+            
+        # 2. Browser delivery
+        if self.preference_service.is_channel_enabled(notification.recipient_id, notification_type, NotificationChannel.BROWSER):
+            pass

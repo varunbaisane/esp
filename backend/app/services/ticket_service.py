@@ -24,9 +24,11 @@ class TicketService:
         from app.services.notification_delivery_dispatcher import NotificationDeliveryDispatcher
         from app.email.factory import get_email_provider
         from app.services.email_service import EmailService
+        from app.services.notification_preference_service import NotificationPreferenceService
         
         email_service = EmailService(get_email_provider())
-        dispatcher = NotificationDeliveryDispatcher(email_service)
+        preference_service = NotificationPreferenceService(session)
+        dispatcher = NotificationDeliveryDispatcher(email_service, preference_service)
         self._notification_service = NotificationService(NotificationRepository(session), dispatcher)
 
     def create(self, ticket_data: TicketCreate, user_id: int) -> Ticket:

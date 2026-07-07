@@ -54,10 +54,16 @@ def get_email_service() -> EmailService:
     provider = get_email_provider()
     return EmailService(provider)
 
+from app.services.notification_preference_service import NotificationPreferenceService
+
+def get_notification_preference_service(db: Session = Depends(get_db)) -> NotificationPreferenceService:
+    return NotificationPreferenceService(db)
+
 def get_notification_delivery_dispatcher(
-    email_service: EmailService = Depends(get_email_service)
+    email_service: EmailService = Depends(get_email_service),
+    preference_service: NotificationPreferenceService = Depends(get_notification_preference_service)
 ) -> NotificationDeliveryDispatcher:
-    return NotificationDeliveryDispatcher(email_service)
+    return NotificationDeliveryDispatcher(email_service, preference_service)
 
 def get_notification_service(
     db: Session = Depends(get_db),

@@ -23,6 +23,7 @@ const VerifyEmailPage = lazy(() => import("./pages/auth/VerifyEmailPage").then(m
 const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage").then(module => ({ default: module.ForgotPasswordPage })));
 const PendingApprovalPage = lazy(() => import("./pages/PendingApprovalPage").then(module => ({ default: module.PendingApprovalPage })));
 const UsersPage = lazy(() => import("./pages/admin/UsersPage").then(module => ({ default: module.UsersPage })));
+const NotificationPreferencesPage = lazy(() => import("./pages/settings/NotificationPreferencesPage").then(module => ({ default: module.NotificationPreferencesPage })));
 
 import { BrowserNotificationProvider } from "./context/BrowserNotificationContext";
 
@@ -58,6 +59,7 @@ function App() {
                             <Route path="/tickets/:id" element={<TicketDetailPage />} />
                             <Route path="/activity" element={<ActivityPage />} />
                             <Route path="/analytics" element={<AnalyticsPage />} />
+                            <Route path="/settings/notifications" element={<NotificationPreferencesPage />} />
                             <Route path="/admin" element={
                               <AdminRoute>
                                 <UsersPage />

@@ -58,3 +58,9 @@ class User(Base):
         back_populates="assigned_to",
     )
 
+    notification_preferences: Mapped[list["NotificationPreference"]] = relationship( # noqa: F821
+        "NotificationPreference",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+

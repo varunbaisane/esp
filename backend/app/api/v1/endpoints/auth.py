@@ -50,6 +50,9 @@ def register(
             db.commit()
             raise HTTPException(status_code=500, detail="Unable to send verification email. Please try again later.")
             
+        from app.services.notification_preference_service import NotificationPreferenceService
+        NotificationPreferenceService(db).create_defaults(user.id)
+            
         db.commit()
         
         return RegisterResponse(verification_required=True, email=user.email)
