@@ -21,7 +21,13 @@ class TicketService:
         self._repository = TicketRepository(session)
         self._user_repository = UserRepository(session)
         self._audit_service = AuditService(session)
-        self._notification_service = NotificationService(NotificationRepository(session))
+        from app.services.notification_delivery_dispatcher import NotificationDeliveryDispatcher
+        from app.email.factory import get_email_provider
+        from app.services.email_service import EmailService
+        
+        email_service = EmailService(get_email_provider())
+        dispatcher = NotificationDeliveryDispatcher(email_service)
+        self._notification_service = NotificationService(NotificationRepository(session), dispatcher)
 
     def create(self, ticket_data: TicketCreate, user_id: int) -> Ticket:
         user = self._user_repository.get_by_id(user_id)

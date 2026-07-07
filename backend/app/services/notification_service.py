@@ -16,9 +16,12 @@ from app.core.notification_templates import (
 )
 from enum import Enum
 
+from app.services.notification_delivery_dispatcher import NotificationDeliveryDispatcher
+
 class NotificationService:
-    def __init__(self, notification_repo: NotificationRepository):
+    def __init__(self, notification_repo: NotificationRepository, dispatcher: NotificationDeliveryDispatcher):
         self.notification_repo = notification_repo
+        self.dispatcher = dispatcher
 
     def create_notification(
         self,
@@ -55,7 +58,7 @@ class NotificationService:
         if actor_id == recipient_id:
             return None
 
-        return self.create_notification(
+        notification = self.create_notification(
             recipient_id=recipient_id,
             actor_id=actor_id,
             type=type,
@@ -64,6 +67,11 @@ class NotificationService:
             entity_type=entity_type,
             entity_id=entity_id,
         )
+        
+        # Fan-out to secondary channels
+        self.dispatcher.dispatch(notification, content)
+        
+        return notification
 
     def notify_ticket_assigned(self, ticket: Ticket, actor: User, assignee_id: int) -> Optional[Notification]:
         content = build_ticket_assigned(actor_name=str(actor.full_name), ticket=ticket)

@@ -28,14 +28,23 @@ def register(
     """
     from app.services.verification_service import VerificationService
     from app.models.verification_otp import OTPPurpose
+    from app.email.factory import get_email_provider
     from app.services.email_service import EmailService
+    from app.email.models import EmailMessage
+    from app.email.templates import build_verification_email
 
     try:
         user = auth_service.register_user(db, data)
         otp = VerificationService().create_otp(db, user.id, OTPPurpose.EMAIL_VERIFICATION)
         
         try:
-            EmailService.send_verification_otp(user.email, otp)
+            email_service = EmailService(get_email_provider())
+            message = EmailMessage(
+                to=[user.email],
+                subject="Verify your Email Address",
+                html=build_verification_email(user.email, otp)
+            )
+            email_service.send(message)
         except Exception as e:
             db.delete(user)
             db.commit()
@@ -87,7 +96,10 @@ def send_verification_otp(
 ):
     from app.services.verification_service import VerificationService
     from app.models.verification_otp import OTPPurpose
+    from app.email.factory import get_email_provider
     from app.services.email_service import EmailService
+    from app.email.models import EmailMessage
+    from app.email.templates import build_verification_email
     from app.repositories.user_repository import UserRepository
     
     user = UserRepository(db).get_by_email(data.email)
@@ -96,7 +108,13 @@ def send_verification_otp(
         
     try:
         otp = VerificationService().create_otp(db, user.id, OTPPurpose.EMAIL_VERIFICATION)
-        EmailService.send_verification_otp(user.email, otp)
+        email_service = EmailService(get_email_provider())
+        message = EmailMessage(
+            to=[user.email],
+            subject="Verify your Email Address",
+            html=build_verification_email(user.email, otp)
+        )
+        email_service.send(message)
         db.commit()
     except Exception:
         pass
@@ -142,7 +160,10 @@ def forgot_password(
 ):
     from app.services.verification_service import VerificationService
     from app.models.verification_otp import OTPPurpose
+    from app.email.factory import get_email_provider
     from app.services.email_service import EmailService
+    from app.email.models import EmailMessage
+    from app.email.templates import build_password_reset_email
     from app.repositories.user_repository import UserRepository
     
     user = UserRepository(db).get_by_email(data.email)
@@ -151,7 +172,13 @@ def forgot_password(
         
     try:
         otp = VerificationService().create_otp(db, user.id, OTPPurpose.PASSWORD_RESET)
-        EmailService.send_password_reset_otp(user.email, otp)
+        email_service = EmailService(get_email_provider())
+        message = EmailMessage(
+            to=[user.email],
+            subject="Reset your Password",
+            html=build_password_reset_email(user.email, otp)
+        )
+        email_service.send(message)
         db.commit()
     except Exception:
         pass

@@ -24,51 +24,55 @@ const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage").
 const PendingApprovalPage = lazy(() => import("./pages/PendingApprovalPage").then(module => ({ default: module.PendingApprovalPage })));
 const UsersPage = lazy(() => import("./pages/admin/UsersPage").then(module => ({ default: module.UsersPage })));
 
+import { BrowserNotificationProvider } from "./context/BrowserNotificationContext";
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <NotificationProvider>
-          <AppNotificationProvider>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* Public Auth Routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/registration-success" element={<RegistrationSuccessPage />} />
-                <Route path="/verify-email" element={<VerifyEmailPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/pending-approval" element={<PendingApprovalPage />} />
+        <BrowserNotificationProvider>
+          <NotificationProvider>
+            <AppNotificationProvider>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* Public Auth Routes */}
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/registration-success" element={<RegistrationSuccessPage />} />
+                  <Route path="/verify-email" element={<VerifyEmailPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
-                {/* Protected Portal Routes */}
-                <Route path="/*" element={
-                  <ProtectedRoute>
-                    <AppLayout>
-                      <Suspense fallback={<PageLoader />}>
-                        <Routes>
-                          <Route path="/" element={<Navigate to="/workspace" replace />} />
-                          <Route path="/workspace" element={<PersonalWorkspacePage />} />
-                          <Route path="/dashboard" element={<DashboardPage />} />
-                          <Route path="/team-operations" element={<TeamOperationsPage />} />
-                          <Route path="/tickets" element={<TicketsPage />} />
-                          <Route path="/tickets/new" element={<CreateTicketPage />} />
-                          <Route path="/tickets/:id" element={<TicketDetailPage />} />
-                          <Route path="/activity" element={<ActivityPage />} />
-                          <Route path="/analytics" element={<AnalyticsPage />} />
-                          <Route path="/admin" element={
-                            <AdminRoute>
-                              <UsersPage />
-                            </AdminRoute>
-                          } />
-                        </Routes>
-                      </Suspense>
-                    </AppLayout>
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </Suspense>
-          </AppNotificationProvider>
-        </NotificationProvider>
+                  {/* Protected Portal Routes */}
+                  <Route path="/*" element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Routes>
+                            <Route path="/" element={<Navigate to="/workspace" replace />} />
+                            <Route path="/workspace" element={<PersonalWorkspacePage />} />
+                            <Route path="/dashboard" element={<DashboardPage />} />
+                            <Route path="/team-operations" element={<TeamOperationsPage />} />
+                            <Route path="/tickets" element={<TicketsPage />} />
+                            <Route path="/tickets/new" element={<CreateTicketPage />} />
+                            <Route path="/tickets/:id" element={<TicketDetailPage />} />
+                            <Route path="/activity" element={<ActivityPage />} />
+                            <Route path="/analytics" element={<AnalyticsPage />} />
+                            <Route path="/admin" element={
+                              <AdminRoute>
+                                <UsersPage />
+                              </AdminRoute>
+                            } />
+                          </Routes>
+                        </Suspense>
+                      </AppLayout>
+                    </ProtectedRoute>
+                  } />
+                </Routes>
+              </Suspense>
+            </AppNotificationProvider>
+          </NotificationProvider>
+        </BrowserNotificationProvider>
       </AuthProvider>
     </BrowserRouter>
   );

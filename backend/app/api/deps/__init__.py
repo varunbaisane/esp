@@ -45,6 +45,23 @@ def get_role_provisioning_service(db: Session = Depends(get_db)) -> RoleProvisio
 
 from app.services.notification_service import NotificationService
 from app.repositories.notification_repository import NotificationRepository
+from app.services.email_service import EmailService
+from app.services.notification_delivery_dispatcher import NotificationDeliveryDispatcher
+from app.email.factory import get_email_provider
+from app.email.base import BaseEmailProvider
 
-def get_notification_service(db: Session = Depends(get_db)) -> NotificationService:
-    return NotificationService(NotificationRepository(db))
+def get_email_service() -> EmailService:
+    provider = get_email_provider()
+    return EmailService(provider)
+
+def get_notification_delivery_dispatcher(
+    email_service: EmailService = Depends(get_email_service)
+) -> NotificationDeliveryDispatcher:
+    return NotificationDeliveryDispatcher(email_service)
+
+def get_notification_service(
+    db: Session = Depends(get_db),
+    dispatcher: NotificationDeliveryDispatcher = Depends(get_notification_delivery_dispatcher)
+) -> NotificationService:
+    return NotificationService(NotificationRepository(db), dispatcher)
+

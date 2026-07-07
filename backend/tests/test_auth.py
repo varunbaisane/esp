@@ -19,7 +19,7 @@ def test_registration_success(client, db, mock_email_service):
         json={"email": "register@test.com", "full_name": "Test Reg", "password": "Password123!"}
     )
     assert response.status_code == 201
-    mock_email_service.send_verification_otp.assert_called_once()
+    mock_email_service.return_value.send.assert_called_once()
     
     # Contract validation
     data = response.json()
