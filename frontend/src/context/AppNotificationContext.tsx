@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Notification } from '../types/notification';
 import { notificationService } from '../services/notificationService';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../hooks/useNotification';
+import { useBrowserNotification } from './BrowserNotificationContext';
 
 interface AppNotificationContextProps {
   notifications: Notification[];
@@ -20,16 +21,28 @@ const AppNotificationContext = createContext<AppNotificationContextProps | undef
 export const AppNotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const notify = useNotification();
+  const { showBrowserNotification } = useBrowserNotification();
   
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const refreshUnreadCount = useCallback(async () => {
+  const unreadCountRef = useRef<number>(0);
+  const refreshNotificationsRef = useRef<(() => Promise<void>) | null>(null);
+
+  const refreshUnreadCount = useCallback(async (autoFetch = false) => {
     if (!isAuthenticated) return;
     try {
       const { unread_count } = await notificationService.getUnreadCount();
+      
+      if (autoFetch && unread_count > unreadCountRef.current) {
+        if (refreshNotificationsRef.current) {
+          refreshNotificationsRef.current();
+        }
+      }
+      
       setUnreadCount(unread_count);
+      unreadCountRef.current = unread_count;
     } catch (error) {
       console.error('Failed to fetch unread count', error);
     }
@@ -42,13 +55,39 @@ export const AppNotificationProvider: React.FC<{ children: ReactNode }> = ({ chi
       const data = await notificationService.getNotifications(1, 20);
       setNotifications(data.notifications);
       await refreshUnreadCount();
+
+      // Browser Notification Logic
+      const lastSeenStr = localStorage.getItem('lastSeenNotificationId');
+      let lastSeenId = lastSeenStr ? parseInt(lastSeenStr, 10) : 0;
+      let maxNewId = lastSeenId;
+
+      for (const notification of data.notifications) {
+        if (notification.id <= lastSeenId) break;
+
+        if (!notification.is_read) {
+          showBrowserNotification(notification);
+        }
+
+        if (notification.id > maxNewId) {
+          maxNewId = notification.id;
+        }
+      }
+
+      if (maxNewId > lastSeenId) {
+        localStorage.setItem('lastSeenNotificationId', maxNewId.toString());
+      }
+
     } catch (error) {
       console.error('Failed to fetch notifications', error);
       notify.error('Failed to load notifications');
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, refreshUnreadCount, notify]);
+  }, [isAuthenticated, refreshUnreadCount, notify, showBrowserNotification]);
+
+  useEffect(() => {
+    refreshNotificationsRef.current = refreshNotifications;
+  }, [refreshNotifications]);
 
   useEffect(() => {
     // NodeJS.Timeout is not available in browser TS without types/node, use window.setInterval return type (number)
@@ -57,7 +96,7 @@ export const AppNotificationProvider: React.FC<{ children: ReactNode }> = ({ chi
     const startPolling = () => {
       interval = window.setInterval(() => {
         if (document.visibilityState !== 'hidden') {
-          refreshUnreadCount();
+          refreshUnreadCount(true);
         }
       }, 30000);
     };

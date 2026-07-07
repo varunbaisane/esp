@@ -35,15 +35,20 @@ export class BrowserNotificationService {
     return this.isSupported() && this.permission === 'granted';
   }
 
-  /**
-   * Show a browser notification if permitted
-   */
-  public showNotification(title: string, options?: NotificationOptions): void {
+  public showNotification(title: string, options?: NotificationOptions, onClick?: () => void): void {
     if (!this.canNotify()) {
       return;
     }
     
-    new Notification(title, options);
+    const notification = new Notification(title, options);
+    
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+      if (onClick) {
+        onClick();
+      }
+    };
   }
 }
 

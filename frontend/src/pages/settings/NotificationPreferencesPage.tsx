@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { notificationPreferenceService } from '../../services/notificationPreferenceService';
 import type { NotificationPreference } from '../../types/notificationPreference';
 import { PageLoader } from '../../components/common/PageLoader';
+import { useBrowserNotification } from '../../context/BrowserNotificationContext';
 
 export const NotificationPreferencesPage = () => {
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const { permission, requestPermission } = useBrowserNotification();
 
   useEffect(() => {
     fetchPreferences();
@@ -102,30 +105,46 @@ export const NotificationPreferencesPage = () => {
                     {formatType(type)}
                   </div>
                   <div className="flex space-x-6 items-center">
-                    {(prefs as NotificationPreference[]).map(pref => (
+                    {[...(prefs as NotificationPreference[])].sort((a, b) => {
+                      const order: Record<string, number> = { IN_APP: 0, EMAIL: 1, BROWSER: 2 };
+                      return (order[a.channel] ?? 99) - (order[b.channel] ?? 99);
+                    }).map(pref => (
                       <div key={pref.id} className="flex items-center space-x-3">
                         <span className="text-sm text-gray-600">
                           {formatChannel(pref.channel)}
                         </span>
-                        <button
-                          type="button"
-                          className={`
-                            relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500
-                            ${pref.enabled ? 'bg-cyan-600' : 'bg-gray-200'}
-                          `}
-                          role="switch"
-                          aria-checked={pref.enabled}
-                          onClick={() => handleToggle(pref.id, pref.enabled)}
-                        >
-                          <span className="sr-only">Toggle {pref.channel}</span>
-                          <span
-                            aria-hidden="true"
+                        {pref.channel === 'BROWSER' && permission !== 'granted' ? (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-500">🔒 Permission Required</span>
+                            <button
+                              type="button"
+                              onClick={() => requestPermission()}
+                              className="text-xs text-cyan-700 hover:text-cyan-900 font-medium bg-cyan-50 px-2 py-1 rounded"
+                            >
+                              Grant Permission
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
                             className={`
-                              pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200
-                              ${pref.enabled ? 'translate-x-5' : 'translate-x-0'}
+                              relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500
+                              ${pref.enabled ? 'bg-cyan-600' : 'bg-gray-200'}
                             `}
-                          />
-                        </button>
+                            role="switch"
+                            aria-checked={pref.enabled}
+                            onClick={() => handleToggle(pref.id, pref.enabled)}
+                          >
+                            <span className="sr-only">Toggle {pref.channel}</span>
+                            <span
+                              aria-hidden="true"
+                              className={`
+                                pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200
+                                ${pref.enabled ? 'translate-x-5' : 'translate-x-0'}
+                              `}
+                            />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

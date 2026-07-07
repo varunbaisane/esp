@@ -27,6 +27,12 @@ class NotificationDeliveryDispatcher:
         )
         self.email_service.send(message)
 
+    def _dispatch_browser(self, notification: Notification, content: NotificationContent) -> None:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug("Browser delivery queued for notification %d: %s", notification.id, content.title)
+        # Exposes a clean extension point for Phase 9 WebSockets.
+
     def dispatch(self, notification: Notification, content: NotificationContent) -> None:
         """
         Dispatches the notification event to secondary channels.
@@ -40,8 +46,7 @@ class NotificationDeliveryDispatcher:
         # Mandatory onboarding notifications bypass preferences
         if notification_type in (NotificationType.WELCOME, NotificationType.FIRST_ROLE_ASSIGNED):
             self._dispatch_email(notification, content)
-            # Browser delivery
-            pass
+            self._dispatch_browser(notification, content)
             return
 
         # 1. Email delivery
@@ -50,4 +55,4 @@ class NotificationDeliveryDispatcher:
             
         # 2. Browser delivery
         if self.preference_service.is_channel_enabled(notification.recipient_id, notification_type, NotificationChannel.BROWSER):
-            pass
+            self._dispatch_browser(notification, content)
