@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ theme.PRODUCT_NAME }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            color: #374151;
+        }
+
+        .wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+
+            border-top: 4px solid {
+                    {
+                    theme.ACCENT_COLOR
+                }
+            }
+
+            ;
+        }
+
+        .content h1 {
+            color: #111827;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .content p {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+
+        .button-wrap {
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .button {
+            display: inline-block;
+
+            background-color: {
+                    {
+                    theme.ACCENT_COLOR
+                }
+            }
+
+            ;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .footer p {
+            margin: 4px 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .data-table th,
+        .data-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-table th {
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .data-table td {
+            font-size: 14px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <img src="{{ theme.LOGO_URL }}" alt="{{ theme.PRODUCT_NAME }} Logo">
+        </div>
+
+        <div class="card">
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>{{ theme.FOOTER_TEXT }}</p>
+            <p>You're receiving this email because of your account at {{ theme.PRODUCT_NAME }}.</p>
+        </div>
+    </div>
+</body>
+
+</html>

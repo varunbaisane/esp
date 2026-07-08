@@ -5,6 +5,8 @@ import { notificationService } from '../services/notificationService';
 import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../hooks/useNotification';
 import { useBrowserNotification } from './BrowserNotificationContext';
+import { useNotificationToast } from './NotificationToastContext';
+import { notificationSoundService } from '../services/notificationSoundService';
 
 interface AppNotificationContextProps {
   notifications: Notification[];
@@ -22,6 +24,7 @@ export const AppNotificationProvider: React.FC<{ children: ReactNode }> = ({ chi
   const { isAuthenticated } = useAuth();
   const notify = useNotification();
   const { showBrowserNotification } = useBrowserNotification();
+  const { showToast } = useNotificationToast();
   
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -56,20 +59,57 @@ export const AppNotificationProvider: React.FC<{ children: ReactNode }> = ({ chi
       setNotifications(data.notifications);
       await refreshUnreadCount();
 
-      // Browser Notification Logic
+      // Browser Notification & Toast Logic
       const lastSeenStr = localStorage.getItem('lastSeenNotificationId');
       let lastSeenId = lastSeenStr ? parseInt(lastSeenStr, 10) : 0;
       let maxNewId = lastSeenId;
+      
+      const newUnreadNotifications: Notification[] = [];
 
       for (const notification of data.notifications) {
         if (notification.id <= lastSeenId) break;
 
         if (!notification.is_read) {
-          showBrowserNotification(notification);
+          newUnreadNotifications.push(notification);
         }
 
         if (notification.id > maxNewId) {
           maxNewId = notification.id;
+        }
+      }
+
+      if (newUnreadNotifications.length > 0) {
+        // Dynamically import to avoid circular dependencies or cluttering top-level if not strictly needed,
+        // though top-level import is fine. Assuming top-level import is available or we add it.
+        try {
+          const { notificationPreferenceService } = await import('../services/notificationPreferenceService');
+          const preferences = await notificationPreferenceService.getPreferences();
+          
+          let playedSound = false;
+
+          for (const notification of newUnreadNotifications) {
+            const browserPref = preferences.find(p => p.notification_type === notification.type && p.channel === 'BROWSER');
+            // If undefined, it might be a mandatory notification (e.g. WELCOME) which should always be delivered
+            if (!browserPref || browserPref.enabled) {
+              showBrowserNotification(notification);
+            }
+
+            const inAppPref = preferences.find(p => p.notification_type === notification.type && p.channel === 'IN_APP');
+            if (!inAppPref || inAppPref.enabled) {
+              showToast(notification);
+              if (!playedSound) {
+                notificationSoundService.play();
+                playedSound = true;
+              }
+            }
+          }
+        } catch (prefError) {
+          console.error("Failed to fetch preferences, falling back to showing all", prefError);
+          for (const notification of newUnreadNotifications) {
+            showBrowserNotification(notification);
+            showToast(notification);
+          }
+          notificationSoundService.play();
         }
       }
 
@@ -83,7 +123,7 @@ export const AppNotificationProvider: React.FC<{ children: ReactNode }> = ({ chi
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, refreshUnreadCount, notify, showBrowserNotification]);
+  }, [isAuthenticated, refreshUnreadCount, notify, showBrowserNotification, showToast]);
 
   useEffect(() => {
     refreshNotificationsRef.current = refreshNotifications;

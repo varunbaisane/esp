@@ -15,15 +15,20 @@ class NotificationDeliveryDispatcher:
 
     def _dispatch_email(self, notification: Notification, content: NotificationContent) -> None:
         from app.email.models import EmailMessage
+        from app.email.template_renderer import render_email
         
         if not notification.recipient or not notification.recipient.email:
             return
+            
+        html_body = f"<p>{content.message}</p>"
+        if content.template_name:
+            html_body = render_email(content.template_name, content.template_context)
             
         message = EmailMessage(
             subject=content.title,
             to=[notification.recipient.email],
             text=content.message,
-            html=f"<p>{content.message}</p>"
+            html=html_body
         )
         self.email_service.send(message)
 

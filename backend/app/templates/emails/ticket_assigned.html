@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Ticket Assigned</h1>
+<p>Hello,</p>
+<p><strong>{{ actor_name }}</strong> has assigned Ticket <strong>#{{ ticket.id }}</strong> to you.</p>
+
+<table class="data-table">
+    <tr>
+        <th>Ticket ID</th>
+        <td>#{{ ticket.id }}</td>
+    </tr>
+    <tr>
+        <th>Title</th>
+        <td>{{ ticket.title }}</td>
+    </tr>
+    <tr>
+        <th>Status</th>
+        <td>{{ ticket.status.value }}</td>
+    </tr>
+    <tr>
+        <th>Priority</th>
+        <td>{{ ticket.priority.value }}</td>
+    </tr>
+</table>
+
+<div class="button-wrap">
+    <a href="{{ theme.WORKSPACE_URL }}/tickets/{{ ticket.id }}" class="button">View Ticket</a>
+</div>
+{% endblock %}

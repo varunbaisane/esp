@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Role Revoked</h1>
+<p>Hello,</p>
+<p>Your <strong>{{ role_name }}</strong> role has been removed by <strong>{{ actor_name }}</strong>.</p>
+
+<p>If you believe this was done in error or if you require this role to perform your duties, please contact your administrator.</p>
+
+<div class="button-wrap">
+    <a href="{{ theme.WORKSPACE_URL }}/dashboard" class="button">Go to Dashboard</a>
+</div>
+{% endblock %}
