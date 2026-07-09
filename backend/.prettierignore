@@ -1,0 +1,2 @@
+# Ignore Jinja email templates to prevent Prettier from breaking template syntax
+app/templates/emails/**/*.html

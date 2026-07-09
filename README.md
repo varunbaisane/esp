@@ -354,13 +354,14 @@ Ensure your `.env` is populated with the correct database and SMTP configuration
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/esp
 SECRET_KEY=your-secure-secret-key
-EMAIL_MODE=smtp
-SMTP_HOST=smtp.gmail.com
+EMAIL_PROVIDER=smtp
+SMTP_HOST=smtp-relay.brevo.com | smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-SMTP_FROM=your-email@gmail.com
-SMTP_TLS=true
+SMTP_USERNAME=your-smtp-username
+SMTP_PASSWORD=your-smtp-password
+EMAIL_FROM_ADDRESS=noreply@esp.com
+EMAIL_FROM_NAME="Engineering Support Platform (ESP)"
+SMTP_USE_TLS=true
 ```
 
 Apply database migrations:
