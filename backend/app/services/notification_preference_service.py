@@ -1,9 +1,23 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+from sqlalchemy.orm import Session 
 from app.models.notification_preference import NotificationPreference, NotificationType, NotificationChannel
 from app.repositories.notification_preference_repository import NotificationPreferenceRepository
+# pyrefly: ignore [missing-import]
+from sqlalchemy.exc import IntegrityError
+
 
 DEFAULT_PREFERENCES_MATRIX = {
+    NotificationType.TICKET_CREATED: {
+        NotificationChannel.IN_APP: True,
+        NotificationChannel.EMAIL: True,
+        NotificationChannel.BROWSER: False,
+    },
+    NotificationType.TICKET_ESCALATED: {
+        NotificationChannel.IN_APP: True,
+        NotificationChannel.EMAIL: True,
+        NotificationChannel.BROWSER: False,
+    },
     NotificationType.TICKET_ASSIGNED: {
         NotificationChannel.IN_APP: True,
         NotificationChannel.EMAIL: True,
@@ -65,6 +79,24 @@ class NotificationPreferenceService:
             # Option B: Automatically generate default preferences on first access for legacy users
             self.create_defaults(user_id)
             prefs = self.repo.get_preferences(user_id)
+        else:
+            # Reconcile missing preferences (e.g. new types added in updates)
+            existing_keys = {(p.notification_type, p.channel) for p in prefs}
+            added = False
+            for notif_type, channels in DEFAULT_PREFERENCES_MATRIX.items():
+                for channel, enabled in channels.items():
+                    if (notif_type.value, channel.value) not in existing_keys:
+                        new_pref = NotificationPreference(
+                            user_id=user_id,
+                            notification_type=notif_type.value,
+                            channel=channel.value,
+                            enabled=enabled
+                        )
+                        self.repo.create(new_pref)
+                        added = True
+            if added:
+                self.session.commit()
+                prefs = self.repo.get_preferences(user_id)
         return prefs
 
     def update_preference(self, user_id: int, preference_id: int, enabled: bool) -> NotificationPreference:
@@ -84,7 +116,6 @@ class NotificationPreferenceService:
         # Option B: Generate on first access if legacy user
         existing = self.repo.get_preferences(user_id)
         if not existing:
-            from sqlalchemy.exc import IntegrityError
             try:
                 self.create_defaults(user_id)
                 pref = self.repo.get_specific_preference(user_id, notification_type, channel)

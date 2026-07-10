@@ -207,6 +207,23 @@ def reset_password(
         VerificationService().verify_otp(db, user.id, OTPPurpose.PASSWORD_RESET, data.otp)
         user.hashed_password = hash_password(data.new_password)
         db.commit()
+
+        try:
+            from app.email.factory import get_email_provider
+            from app.services.email_service import EmailService
+            from app.email.models import EmailMessage
+            from app.email.templates import build_password_changed_email
+            
+            email_service = EmailService(get_email_provider())
+            message = EmailMessage(
+                to=[user.email],
+                subject="Your password was changed",
+                html=build_password_changed_email(user.full_name)
+            )
+            email_service.send(message)
+        except Exception:
+            pass
+            
         return {"detail": "Password successfully reset."}
     except (InvalidOTPError, OTPExpiredError) as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

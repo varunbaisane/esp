@@ -205,8 +205,7 @@ class TicketService:
             if old_assignee_id is None:
                 self._notification_service.notify_ticket_assigned(ticket, actor, update_data.assigned_to_id, new_assignee_name)
             else:
-                self._notification_service.notify_ticket_reassigned(ticket, actor, update_data.assigned_to_id, old_assignee_name, new_assignee_name)
-                self._notification_service.notify_ticket_reassigned(ticket, actor, old_assignee_id, old_assignee_name, new_assignee_name)
+                self._notification_service.notify_ticket_reassigned(ticket, actor, old_assignee_id, update_data.assigned_to_id, old_assignee_name, new_assignee_name)
 
         try:
             self._session.commit()
@@ -272,9 +271,8 @@ class TicketService:
         
         if old_assignee_id is None:
             self._notification_service.notify_ticket_assigned(ticket, actor, assignee_id, target_user.full_name)
-        else:
-            self._notification_service.notify_ticket_reassigned(ticket, actor, assignee_id, old_assignee_name or "Unassigned", target_user.full_name)
-            self._notification_service.notify_ticket_reassigned(ticket, actor, old_assignee_id, old_assignee_name or "Unassigned", target_user.full_name)
+        if assignee_id != old_assignee_id:
+            self._notification_service.notify_ticket_reassigned(ticket, actor, old_assignee_id, assignee_id, old_assignee_name or "Unassigned", target_user.full_name)
         
         try:
             self._session.commit()

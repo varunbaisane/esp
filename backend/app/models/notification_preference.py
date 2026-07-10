@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from enum import Enum
+# pyrefly: ignore [missing-import]
 from sqlalchemy import Integer, String, Boolean, DateTime, ForeignKey, UniqueConstraint
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -12,10 +14,12 @@ class NotificationChannel(str, Enum):
 
 class NotificationType(str, Enum):
     WELCOME = "WELCOME"
+    TICKET_CREATED = "TICKET_CREATED"
     TICKET_ASSIGNED = "TICKET_ASSIGNED"
     TICKET_REASSIGNED = "TICKET_REASSIGNED"
     TICKET_STATUS_CHANGED = "TICKET_STATUS_CHANGED"
     TICKET_PRIORITY_CHANGED = "TICKET_PRIORITY_CHANGED"
+    TICKET_ESCALATED = "TICKET_ESCALATED"
     ROLE_ASSIGNED = "ROLE_ASSIGNED"
     ROLE_REMOVED = "ROLE_REMOVED"
     FIRST_ROLE_ASSIGNED = "FIRST_ROLE_ASSIGNED"

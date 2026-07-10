@@ -15,3 +15,8 @@ def build_password_reset_email(to_email: str, otp: str) -> str:
         "otp": otp,
         "expiry_minutes": expiry
     })
+
+def build_password_changed_email(user_name: str) -> str:
+    return render_email("password_changed.html", {
+        "user_name": user_name
+    })

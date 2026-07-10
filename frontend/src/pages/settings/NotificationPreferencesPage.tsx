@@ -99,7 +99,20 @@ export const NotificationPreferencesPage = () => {
             </summary>
             
             <div className="px-4 py-5 sm:p-6 divide-y divide-gray-200">
-              {Object.entries(types).map(([type, prefs]) => (
+              {Object.entries(types).sort(([typeA], [typeB]) => {
+                if (category === 'Tickets') {
+                  const TICKET_ORDER: Record<string, number> = {
+                    TICKET_CREATED: 1,
+                    TICKET_ASSIGNED: 2,
+                    TICKET_REASSIGNED: 3,
+                    TICKET_STATUS_CHANGED: 4,
+                    TICKET_PRIORITY_CHANGED: 5,
+                    TICKET_ESCALATED: 6
+                  };
+                  return (TICKET_ORDER[typeA] ?? 99) - (TICKET_ORDER[typeB] ?? 99);
+                }
+                return typeA.localeCompare(typeB);
+              }).map(([type, prefs]) => (
                 <div key={type} className="py-4 flex items-center justify-between first:pt-0 last:pb-0">
                   <div className="text-sm font-medium text-gray-900">
                     {formatType(type)}
