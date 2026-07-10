@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     SMTP_USERNAME: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
     SMTP_USE_TLS: bool = True
+    
+    # Brevo Config
+    BREVO_API_KEY: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env",
