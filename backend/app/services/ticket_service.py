@@ -52,6 +52,7 @@ class TicketService:
         try:
             ticket = self._repository.create(ticket)
             self._audit_service.log_ticket_created(user, ticket)
+            self._notification_service.notify_ticket_created(ticket, user, user_id)
             self._session.commit()
             return ticket
         except Exception:
@@ -184,24 +185,28 @@ class TicketService:
                 ticket.closed_at = None
 
             self._audit_service.log_ticket_status_changed(actor, ticket, old_status, update_data.status.value)
-            self._notification_service.notify_ticket_status_changed(ticket, actor)
+            self._notification_service.notify_ticket_status_changed(ticket, actor, old_status)
             
         if update_data.priority is not None and update_data.priority != ticket.priority:
+            old_priority = ticket.priority.value if hasattr(ticket.priority, "value") else str(ticket.priority)
             ticket.priority = update_data.priority
-            self._notification_service.notify_ticket_priority_changed(ticket, actor)
+            self._notification_service.notify_ticket_priority_changed(ticket, actor, old_priority)
             
         old_assignee_id = ticket.assigned_to_id
         if update_data.assigned_to_id is not None and update_data.assigned_to_id != old_assignee_id:
             assigned_user = self._user_repository.get_by_id(update_data.assigned_to_id)
             if not assigned_user:
                 raise ValueError("Assignee not found")
+            old_assignee_name = ticket.assigned_to_name if ticket.assigned_to_name else "Unassigned"
+            new_assignee_name = str(assigned_user.full_name)
             ticket.assigned_to_id = update_data.assigned_to_id
             self._audit_service.log_ticket_assigned(actor, ticket, old_assignee_id, update_data.assigned_to_id)
             
             if old_assignee_id is None:
-                self._notification_service.notify_ticket_assigned(ticket, actor, update_data.assigned_to_id)
+                self._notification_service.notify_ticket_assigned(ticket, actor, update_data.assigned_to_id, new_assignee_name)
             else:
-                self._notification_service.notify_ticket_reassigned(ticket, actor, update_data.assigned_to_id)
+                self._notification_service.notify_ticket_reassigned(ticket, actor, update_data.assigned_to_id, old_assignee_name, new_assignee_name)
+                self._notification_service.notify_ticket_reassigned(ticket, actor, old_assignee_id, old_assignee_name, new_assignee_name)
 
         try:
             self._session.commit()
@@ -227,7 +232,7 @@ class TicketService:
             
         ticket.assigned_to_id = actor.id
         self._audit_service.log_ticket_claimed(actor, ticket)
-        self._notification_service.notify_ticket_assigned(ticket, actor, actor.id)
+        self._notification_service.notify_ticket_assigned(ticket, actor, actor.id, str(actor.full_name))
         
         try:
             self._session.commit()
@@ -266,9 +271,10 @@ class TicketService:
         self._audit_service.log_ticket_reassigned(actor, ticket, old_assignee_name, target_user.full_name)
         
         if old_assignee_id is None:
-            self._notification_service.notify_ticket_assigned(ticket, actor, assignee_id)
+            self._notification_service.notify_ticket_assigned(ticket, actor, assignee_id, target_user.full_name)
         else:
-            self._notification_service.notify_ticket_reassigned(ticket, actor, assignee_id)
+            self._notification_service.notify_ticket_reassigned(ticket, actor, assignee_id, old_assignee_name or "Unassigned", target_user.full_name)
+            self._notification_service.notify_ticket_reassigned(ticket, actor, old_assignee_id, old_assignee_name or "Unassigned", target_user.full_name)
         
         try:
             self._session.commit()
@@ -293,9 +299,14 @@ class TicketService:
             raise InvalidEscalationError("Ticket cannot be escalated further")
 
         old_level = ticket.support_level.value
+        old_assignee_id = ticket.assigned_to_id
+        
         ticket.support_level = next_level
         ticket.assigned_to_id = None
         self._audit_service.log_ticket_escalated(actor, ticket, old_level, next_level.value)
+        
+        if old_assignee_id is not None:
+            self._notification_service.notify_ticket_escalated(ticket, actor, old_assignee_id, old_level, next_level.value)
 
         try:
             self._session.commit()

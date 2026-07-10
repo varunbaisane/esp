@@ -8,6 +8,8 @@ from app.email.smtp_provider import SMTPProvider
 from app.email.brevo_provider import BrevoProvider
 from app.email.factory import get_email_provider
 from app.services.email_service import EmailService
+# pyrefly: ignore [missing-import]
+from sib_api_v3_sdk.rest import ApiException
 
 def test_email_factory_console(monkeypatch):
     monkeypatch.setattr("app.email.factory.settings.EMAIL_PROVIDER", "console")
@@ -94,7 +96,6 @@ def test_brevo_provider_send(monkeypatch):
     assert call_args.html_content is None
 
 def test_brevo_provider_api_exception(monkeypatch):
-    from sib_api_v3_sdk.rest import ApiException
     
     monkeypatch.setattr("app.email.brevo_provider.settings.BREVO_API_KEY", "test-key")
     provider = BrevoProvider()

@@ -6,10 +6,12 @@ from app.models.user import User
 from app.models.ticket import Ticket
 from app.core.notification_templates import (
     NotificationContent,
+    build_ticket_created,
     build_ticket_assigned,
     build_ticket_reassigned,
     build_ticket_status_changed,
     build_ticket_priority_changed,
+    build_ticket_escalated,
     build_role_assigned,
     build_role_removed,
     build_first_role_assigned,
@@ -73,8 +75,8 @@ class NotificationService:
         
         return notification
 
-    def notify_ticket_assigned(self, ticket: Ticket, actor: User, assignee_id: int) -> Optional[Notification]:
-        content = build_ticket_assigned(actor_name=str(actor.full_name), ticket=ticket)
+    def notify_ticket_created(self, ticket: Ticket, actor: User, assignee_id: int) -> Optional[Notification]:
+        content = build_ticket_created(actor_name=str(actor.full_name), ticket=ticket)
         return self._notify(
             recipient_id=assignee_id,
             actor_id=actor.id,
@@ -84,10 +86,21 @@ class NotificationService:
             entity_id=ticket.id,
         )
 
-    def notify_ticket_reassigned(self, ticket: Ticket, actor: User, assignee_id: int) -> Optional[Notification]:
-        content = build_ticket_reassigned(actor_name=str(actor.full_name), ticket=ticket)
+    def notify_ticket_assigned(self, ticket: Ticket, actor: User, assignee_id: int, assignee_name: str) -> Optional[Notification]:
+        content = build_ticket_assigned(actor_name=str(actor.full_name), ticket=ticket, assignee_name=assignee_name)
         return self._notify(
             recipient_id=assignee_id,
+            actor_id=actor.id,
+            type=NotificationType.TICKET_ASSIGNED,
+            content=content,
+            entity_type="TICKET",
+            entity_id=ticket.id,
+        )
+
+    def notify_ticket_reassigned(self, ticket: Ticket, actor: User, recipient_id: int, old_assignee_name: str, new_assignee_name: str) -> Optional[Notification]:
+        content = build_ticket_reassigned(actor_name=str(actor.full_name), ticket=ticket, old_assignee_name=old_assignee_name, new_assignee_name=new_assignee_name)
+        return self._notify(
+            recipient_id=recipient_id,
             actor_id=actor.id,
             type=NotificationType.TICKET_REASSIGNED,
             content=content,
@@ -95,7 +108,7 @@ class NotificationService:
             entity_id=ticket.id,
         )
 
-    def notify_ticket_status_changed(self, ticket: Ticket, actor: User) -> Optional[Notification]:
+    def notify_ticket_status_changed(self, ticket: Ticket, actor: User, old_status: str) -> Optional[Notification]:
         assignee_id = ticket.assigned_to_id
         if not assignee_id:
             return None
@@ -105,7 +118,7 @@ class NotificationService:
             if isinstance(ticket.status, Enum)
             else str(ticket.status)
         )
-        content = build_ticket_status_changed(actor_name=str(actor.full_name), ticket=ticket, new_status=status_str)
+        content = build_ticket_status_changed(actor_name=str(actor.full_name), ticket=ticket, old_status=old_status, new_status=status_str)
         return self._notify(
             recipient_id=assignee_id,
             actor_id=actor.id,
@@ -115,7 +128,7 @@ class NotificationService:
             entity_id=ticket.id,
         )
 
-    def notify_ticket_priority_changed(self, ticket: Ticket, actor: User) -> Optional[Notification]:
+    def notify_ticket_priority_changed(self, ticket: Ticket, actor: User, old_priority: str) -> Optional[Notification]:
         assignee_id = ticket.assigned_to_id
         if not assignee_id:
             return None
@@ -125,11 +138,22 @@ class NotificationService:
             if isinstance(ticket.priority, Enum) 
             else str(ticket.priority)
         )
-        content = build_ticket_priority_changed(actor_name=str(actor.full_name), ticket=ticket, new_priority=priority_str)
+        content = build_ticket_priority_changed(actor_name=str(actor.full_name), ticket=ticket, old_priority=old_priority, new_priority=priority_str)
         return self._notify(
             recipient_id=assignee_id,
             actor_id=actor.id,
             type=NotificationType.TICKET_PRIORITY_CHANGED,
+            content=content,
+            entity_type="TICKET",
+            entity_id=ticket.id,
+        )
+        
+    def notify_ticket_escalated(self, ticket: Ticket, actor: User, recipient_id: int, old_level: str, new_level: str) -> Optional[Notification]:
+        content = build_ticket_escalated(actor_name=str(actor.full_name), ticket=ticket, old_level=old_level, new_level=new_level)
+        return self._notify(
+            recipient_id=recipient_id,
+            actor_id=actor.id,
+            type=NotificationType.TICKET_ESCALATED,  # Assume we need to handle this type, or map to TICKET_ASSIGNED
             content=content,
             entity_type="TICKET",
             entity_id=ticket.id,

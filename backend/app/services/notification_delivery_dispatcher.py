@@ -22,8 +22,13 @@ class NotificationDeliveryDispatcher:
             
         html_body = f"<p>{content.message}</p>"
         if content.template_name:
-            html_body = render_email(content.template_name, content.template_context)
-            
+            context = dict(content.template_context)
+            if content.ticket_summary:
+                context["ticket_summary"] = content.ticket_summary
+            if content.summary_rows:
+                context["summary_rows"] = content.summary_rows
+                
+            html_body = render_email(content.template_name, context)
         message = EmailMessage(
             subject=content.title,
             to=[notification.recipient.email],
