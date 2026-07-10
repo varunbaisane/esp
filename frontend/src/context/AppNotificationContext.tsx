@@ -7,6 +7,7 @@ import { useNotification } from '../hooks/useNotification';
 import { useBrowserNotification } from './BrowserNotificationContext';
 import { useNotificationToast } from './NotificationToastContext';
 import { notificationSoundService } from '../services/notificationSoundService';
+import { useWebSocket } from './WebSocketContext';
 
 interface AppNotificationContextProps {
   notifications: Notification[];
@@ -129,21 +130,63 @@ export const AppNotificationProvider: React.FC<{ children: ReactNode }> = ({ chi
     refreshNotificationsRef.current = refreshNotifications;
   }, [refreshNotifications]);
 
+  const { isConnected, lastMessage } = useWebSocket();
+  const wasConnectedRef = useRef(false);
+
+  // Auto-refresh on connection/reconnection to catch missed notifications
   useEffect(() => {
-    // NodeJS.Timeout is not available in browser TS without types/node, use window.setInterval return type (number)
-    let interval: number;
+    if (isConnected && !wasConnectedRef.current && isAuthenticated) {
+      refreshNotifications();
+    }
+    wasConnectedRef.current = isConnected;
+  }, [isConnected, isAuthenticated, refreshNotifications]);
 
-    const startPolling = () => {
-      interval = window.setInterval(() => {
-        if (document.visibilityState !== 'hidden') {
-          refreshUnreadCount(true);
-        }
-      }, 30000);
-    };
+  // Handle incoming WebSocket messages
+  useEffect(() => {
+    if (lastMessage && lastMessage.type === 'notification' && lastMessage.payload) {
+      const notification = lastMessage.payload as Notification;
+      
+      // Prevent duplicates if already fetched
+      setNotifications(prev => {
+        if (prev.some(n => n.id === notification.id)) return prev;
+        return [notification, ...prev];
+      });
 
-    if (isAuthenticated) {
+      setUnreadCount(prev => prev + 1);
+
+      // We only process toasts/sounds for unread notifications, which fresh ones will be
+      import('../services/notificationPreferenceService').then(({ notificationPreferenceService }) => {
+        notificationPreferenceService.getPreferences().then(preferences => {
+          let playedSound = false;
+
+          const browserPref = preferences.find(p => p.notification_type === notification.type && p.channel === 'BROWSER');
+          if (!browserPref || browserPref.enabled) {
+            showBrowserNotification(notification);
+          }
+
+          const inAppPref = preferences.find(p => p.notification_type === notification.type && p.channel === 'IN_APP');
+          if (!inAppPref || inAppPref.enabled) {
+            showToast(notification);
+            if (!playedSound) {
+              notificationSoundService.play();
+              playedSound = true;
+            }
+          }
+        }).catch(err => {
+          console.error("Failed to fetch preferences on ws event", err);
+          showBrowserNotification(notification);
+          showToast(notification);
+          notificationSoundService.play();
+        });
+      });
+    }
+  }, [lastMessage, showBrowserNotification, showToast]);
+
+  useEffect(() => {
+    // Only refresh once on mount if authenticated and not yet connected to ws
+    // (the websocket isConnected effect will handle the main refresh once connected)
+    if (isAuthenticated && !wasConnectedRef.current) {
       refreshUnreadCount();
-      startPolling();
     }
 
     const handleVisibilityChange = () => {
@@ -155,7 +198,6 @@ export const AppNotificationProvider: React.FC<{ children: ReactNode }> = ({ chi
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      if (interval) window.clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isAuthenticated, refreshUnreadCount]);

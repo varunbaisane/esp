@@ -37,11 +37,32 @@ class NotificationDeliveryDispatcher:
         )
         self.email_service.send(message)
 
-    def _dispatch_browser(self, notification: Notification, content: NotificationContent) -> None:
+    def _dispatch_websocket(self, notification: Notification, content: NotificationContent) -> None:
         import logging
+        import json
+        from app.schemas.notification import NotificationResponse
+        from app.websocket.connection_manager import connection_manager
+        from app.websocket.events import WebSocketEvent, WebSocketEventType
+        import asyncio
+        
         logger = logging.getLogger(__name__)
-        logger.debug("Browser delivery queued for notification %d: %s", notification.id, content.title)
-        # Exposes a clean extension point for Phase 9 WebSockets.
+        logger.debug("WebSocket delivery queued for notification %d: %s", notification.id, content.title)
+        
+        try:
+            # Serialize the notification exactly as the REST API does
+            payload = NotificationResponse.model_validate(notification).model_dump(mode="json")
+            
+            # Wrap in WebSocketEvent
+            event = WebSocketEvent(
+                type=WebSocketEventType.NOTIFICATION,
+                payload=payload
+            )
+            
+            # Dispatch asynchronously using the thread-safe fire-and-forget mechanism
+            event_json = event.model_dump_json()
+            connection_manager.dispatch_fire_and_forget(notification.recipient_id, event_json)
+        except Exception as e:
+            logger.error(f"Failed to dispatch WebSocket event for notification {notification.id}: {e}")
 
     def dispatch(self, notification: Notification, content: NotificationContent) -> None:
         """
@@ -56,13 +77,20 @@ class NotificationDeliveryDispatcher:
         # Mandatory onboarding notifications bypass preferences
         if notification_type in (NotificationType.WELCOME, NotificationType.FIRST_ROLE_ASSIGNED):
             self._dispatch_email(notification, content)
-            self._dispatch_browser(notification, content)
+            self._dispatch_websocket(notification, content)
             return
 
-        # 1. Email delivery
-        if self.preference_service.is_channel_enabled(notification.recipient_id, notification_type, NotificationChannel.EMAIL):
+        # Check user preferences
+        if self.preference_service.is_channel_enabled(
+            notification.recipient_id,
+            notification_type,
+            NotificationChannel.EMAIL
+        ):
             self._dispatch_email(notification, content)
-            
-        # 2. Browser delivery
-        if self.preference_service.is_channel_enabled(notification.recipient_id, notification_type, NotificationChannel.BROWSER):
-            self._dispatch_browser(notification, content)
+
+        if self.preference_service.is_channel_enabled(
+            notification.recipient_id,
+            notification_type,
+            NotificationChannel.BROWSER
+        ):
+            self._dispatch_websocket(notification, content)
