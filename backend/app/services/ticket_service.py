@@ -30,6 +30,9 @@ class TicketService:
         preference_service = NotificationPreferenceService(session)
         dispatcher = NotificationDeliveryDispatcher(email_service, preference_service)
         self._notification_service = NotificationService(NotificationRepository(session), dispatcher)
+        
+        from app.services.ticket_event_dispatcher import TicketEventDispatcher
+        self._ticket_event_dispatcher = TicketEventDispatcher()
 
     def create(self, ticket_data: TicketCreate, user_id: int) -> Ticket:
         user = self._user_repository.get_by_id(user_id)
@@ -54,6 +57,10 @@ class TicketService:
             self._audit_service.log_ticket_created(user, ticket)
             self._notification_service.notify_ticket_created(ticket, user, user_id)
             self._session.commit()
+            
+            from app.services.ticket_event_dispatcher import TicketEvent
+            self._ticket_event_dispatcher.publish_ticket_event(ticket.id, TicketEvent.CREATED)
+            
             return ticket
         except Exception:
             self._session.rollback()
@@ -170,12 +177,16 @@ class TicketService:
             
         if not ticket:
             raise ValueError("Ticket not found")
+            
+        from app.services.ticket_event_dispatcher import TicketEvent
+        events_to_dispatch = []
 
         old_status = ticket.status.value
         if update_data.status is not None and update_data.status != ticket.status:
             if not can_transition(ticket.status, update_data.status):
                 raise InvalidTicketTransitionError(f"Cannot transition from {ticket.status.value} to {update_data.status.value}")
             ticket.status = update_data.status
+            events_to_dispatch.append(TicketEvent.STATUS_CHANGED)
             
             if update_data.status in (TicketStatus.RESOLVED, TicketStatus.CLOSED):
                 from datetime import datetime, timezone
@@ -191,6 +202,7 @@ class TicketService:
             old_priority = ticket.priority.value if hasattr(ticket.priority, "value") else str(ticket.priority)
             ticket.priority = update_data.priority
             self._notification_service.notify_ticket_priority_changed(ticket, actor, old_priority)
+            events_to_dispatch.append(TicketEvent.PRIORITY_CHANGED)
             
         old_assignee_id = ticket.assigned_to_id
         if update_data.assigned_to_id is not None and update_data.assigned_to_id != old_assignee_id:
@@ -204,11 +216,15 @@ class TicketService:
             
             if old_assignee_id is None:
                 self._notification_service.notify_ticket_assigned(ticket, actor, update_data.assigned_to_id, new_assignee_name)
+                events_to_dispatch.append(TicketEvent.ASSIGNED)
             else:
                 self._notification_service.notify_ticket_reassigned(ticket, actor, old_assignee_id, update_data.assigned_to_id, old_assignee_name, new_assignee_name)
+                events_to_dispatch.append(TicketEvent.REASSIGNED)
 
         try:
             self._session.commit()
+            for evt in events_to_dispatch:
+                self._ticket_event_dispatcher.publish_ticket_event(ticket.id, evt)
             return ticket
         except Exception:
             self._session.rollback()
@@ -235,6 +251,8 @@ class TicketService:
         
         try:
             self._session.commit()
+            from app.services.ticket_event_dispatcher import TicketEvent
+            self._ticket_event_dispatcher.publish_ticket_event(ticket.id, TicketEvent.ASSIGNED)
             return ticket
         except Exception:
             self._session.rollback()
@@ -276,6 +294,8 @@ class TicketService:
         
         try:
             self._session.commit()
+            from app.services.ticket_event_dispatcher import TicketEvent
+            self._ticket_event_dispatcher.publish_ticket_event(ticket.id, TicketEvent.ASSIGNED if old_assignee_id is None else TicketEvent.REASSIGNED)
             return ticket
         except Exception:
             self._session.rollback()
@@ -308,6 +328,8 @@ class TicketService:
 
         try:
             self._session.commit()
+            from app.services.ticket_event_dispatcher import TicketEvent
+            self._ticket_event_dispatcher.publish_ticket_event(ticket.id, TicketEvent.ESCALATED)
             return ticket
         except Exception:
             self._session.rollback()

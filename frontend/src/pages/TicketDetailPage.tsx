@@ -1,5 +1,6 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useTicketSync } from "../context/TicketSyncContext";
 import axios from "axios";
 import { ticketService } from "../services/ticketService";
 import type { TicketRead } from "../types/ticket";
@@ -22,7 +23,26 @@ export const TicketDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState<boolean>(false);
 
+  const { registerTicketRefresh, unregisterTicketRefresh } = useTicketSync();
   useDocumentTitle(ticket ? `Ticket #${ticket.id}` : id ? `Ticket #${id}` : "Ticket");
+
+  const fetchTicketSilently = useCallback(async () => {
+    if (!id) return;
+    try {
+      const data = await ticketService.getTicket(parseInt(id, 10));
+      setTicket(data);
+    } catch (err) {
+      // Ignore background sync errors
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      const ticketId = parseInt(id, 10);
+      registerTicketRefresh(ticketId, 'detail-page', fetchTicketSilently);
+      return () => unregisterTicketRefresh(ticketId, 'detail-page');
+    }
+  }, [id, registerTicketRefresh, unregisterTicketRefresh, fetchTicketSilently]);
 
   useEffect(() => {
     const fetchTicket = async () => {

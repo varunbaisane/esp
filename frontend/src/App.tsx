@@ -28,6 +28,7 @@ const NotificationPreferencesPage = lazy(() => import("./pages/settings/Notifica
 import { BrowserNotificationProvider } from "./context/BrowserNotificationContext";
 import { NotificationToastProvider } from "./context/NotificationToastContext";
 import { WebSocketProvider } from "./context/WebSocketContext";
+import { TicketSyncProvider } from "./context/TicketSyncContext";
 
 function App() {
   return (
@@ -37,11 +38,12 @@ function App() {
           <NotificationProvider>
             <NotificationToastProvider>
               <WebSocketProvider>
-                <AppNotificationProvider>
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                      {/* Public Auth Routes */}
-                      <Route path="/login" element={<LoginPage />} />
+                <TicketSyncProvider>
+                  <AppNotificationProvider>
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
+                        {/* Public Auth Routes */}
+                        <Route path="/login" element={<LoginPage />} />
                       <Route path="/register" element={<RegisterPage />} />
                       <Route path="/registration-success" element={<RegistrationSuccessPage />} />
                       <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -76,7 +78,8 @@ function App() {
                       } />
                     </Routes>
                   </Suspense>
-                </AppNotificationProvider>
+                  </AppNotificationProvider>
+                </TicketSyncProvider>
               </WebSocketProvider>
             </NotificationToastProvider>
           </NotificationProvider>

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useTicketSync } from "../context/TicketSyncContext";
 import { useSearchParams } from "react-router-dom";
 import { ticketService } from "../services/ticketService";
 import type { TicketSummary, TicketFilters as FiltersType } from "../types/ticket";
@@ -34,6 +35,30 @@ export const TicketsPage = () => {
   };
 
   const hasActiveFilters = Object.values(filters).some(v => v !== undefined);
+
+  const { registerRefresh, unregisterRefresh } = useTicketSync();
+
+  const fetchSilently = useCallback(async () => {
+    try {
+      const offset = (currentPage - 1) * DEFAULT_PAGE_SIZE;
+      const data = await ticketService.getTickets(
+        filters,
+        DEFAULT_PAGE_SIZE,
+        offset,
+        sortBy,
+        sortOrder
+      );
+      setTickets(data.items);
+      setTotal(data.total);
+    } catch (err) {
+      // Ignore background sync errors
+    }
+  }, [filters, currentPage, sortBy, sortOrder]);
+
+  useEffect(() => {
+    registerRefresh('tickets-page', fetchSilently);
+    return () => unregisterRefresh('tickets-page');
+  }, [registerRefresh, unregisterRefresh, fetchSilently]);
 
   useEffect(() => {
     const fetchTickets = async () => {

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useTicketSync } from "../context/TicketSyncContext";
 import { PageContainer } from "../components/layout/PageContainer";
 import { ActivityFeed } from "../components/activity/ActivityFeed";
 import { PaginationControls } from "../components/activity/PaginationControls";
@@ -13,6 +14,24 @@ export const ActivityPage = () => {
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 25;
+
+  const { registerRefresh, unregisterRefresh } = useTicketSync();
+
+  const fetchSilently = useCallback(async () => {
+    try {
+      const offset = (currentPage - 1) * limit;
+      const data = await activityService.getActivityFeed(limit, offset);
+      setLogs(data.items);
+      setTotal(data.total);
+    } catch (err) {
+      // Ignore background sync errors
+    }
+  }, [currentPage, limit]);
+
+  useEffect(() => {
+    registerRefresh('activity-page', fetchSilently);
+    return () => unregisterRefresh('activity-page');
+  }, [registerRefresh, unregisterRefresh, fetchSilently]);
 
   useEffect(() => {
     const fetchFeed = async () => {

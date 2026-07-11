@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useTicketSync } from "../context/TicketSyncContext";
 import { ticketService } from "../services/ticketService";
 import type { TicketStats } from "../types/ticket";
 import { StatsGrid } from "../components/dashboard/StatsGrid";
@@ -17,6 +18,26 @@ export const DashboardPage = () => {
   const [recentActivity, setRecentActivity] = useState<AuditLogSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { registerRefresh, unregisterRefresh } = useTicketSync();
+
+  const fetchSilently = useCallback(async () => {
+    try {
+      const [stats, activity] = await Promise.all([
+        ticketService.getStats(),
+        activityService.getRecentActivity(10)
+      ]);
+      setTicketStats(stats);
+      setRecentActivity(activity);
+    } catch (err) {
+      // Ignore background sync errors
+    }
+  }, []);
+
+  useEffect(() => {
+    registerRefresh('dashboard-page', fetchSilently);
+    return () => unregisterRefresh('dashboard-page');
+  }, [registerRefresh, unregisterRefresh, fetchSilently]);
 
   useEffect(() => {
     const fetchData = async () => {

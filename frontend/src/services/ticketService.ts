@@ -62,5 +62,13 @@ export const ticketService = {
     clearCache("/tickets");
     clearCache("/audit");
     return response.data;
+  },
+
+  invalidateCache: (ticketId?: number): void => {
+    // TODO:
+    // Currently invalidates all ticket-related caches.
+    // Future: invalidate only caches related to ticketId.
+    clearCache("/tickets");
+    clearCache("/audit");
   }
 };
