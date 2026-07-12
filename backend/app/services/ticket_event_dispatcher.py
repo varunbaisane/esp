@@ -36,6 +36,8 @@ class TicketEventDispatcher:
             )
             
             event_json = ws_event.model_dump_json()
-            connection_manager.publish_fire_and_forget(event_json)
+            from app.infrastructure.realtime.publisher import realtime_publisher
+            
+            realtime_publisher.publish_broadcast_fire_and_forget(event_json)
         except Exception as e:
             logger.error(f"Failed to dispatch ticket sync event for ticket {ticket_id}: {e}")

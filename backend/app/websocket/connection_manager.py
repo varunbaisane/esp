@@ -17,7 +17,6 @@ class ConnectionManager:
             import asyncio
             self.loop = asyncio.get_running_loop()
             
-        await websocket.accept()
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
         self.active_connections[user_id].add(websocket)

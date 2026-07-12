@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   db:
@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U esp -d esp_db"]
+      test: [ "CMD-SHELL", "pg_isready -U esp -d esp_db" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,7 +30,21 @@ services:
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U esp -d esp_test_db"]
+      test: [ "CMD-SHELL", "pg_isready -U esp -d esp_test_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: esp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,3 +52,4 @@ services:
 volumes:
   postgres_data:
   postgres_test_data:
+  redis_data:

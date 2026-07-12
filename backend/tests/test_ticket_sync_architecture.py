@@ -21,16 +21,16 @@ def test_ticket_service_depends_on_dispatcher():
 def test_ticket_event_dispatcher_ownership():
     """
     TicketEventDispatcher must be the ONLY class allowed to construct WebSocket events
-    for tickets and publish them to connection_manager.
+    for tickets and publish them to realtime_publisher.
     """
-    # Verify TicketService does not call connection_manager.publish directly
+    # Verify TicketService does not call realtime_publisher or connection_manager directly
     ts_source = inspect.getsource(TicketService)
     assert "connection_manager.publish" not in ts_source
-    assert "connection_manager.publish_fire_and_forget" not in ts_source
+    assert "realtime_publisher.publish" not in ts_source
     
-    # Verify TicketEventDispatcher DOES call connection_manager
+    # Verify TicketEventDispatcher DOES call realtime_publisher
     dispatcher_source = inspect.getsource(TicketEventDispatcher.publish_ticket_event)
-    assert "connection_manager.publish_fire_and_forget" in dispatcher_source
+    assert "realtime_publisher.publish_broadcast_fire_and_forget" in dispatcher_source
 
 def test_event_payload_schema():
     """

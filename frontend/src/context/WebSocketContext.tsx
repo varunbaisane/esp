@@ -55,9 +55,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
       setIsConnected(false);
       wsRef.current = null;
+
+      // 1008 indicates policy violation (e.g. invalid or expired JWT).
+      // We should NOT reconnect automatically in this case, as the token needs to be refreshed
+      // or the user needs to log in again.
+      if (event.code === 1008) {
+        console.error("WebSocket connection closed due to authentication failure (1008).");
+        return;
+      }
       
       // If not a clean close and we are still authenticated, attempt to reconnect
       if (isAuthenticated) {
@@ -67,7 +75,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
         }
-        reconnectTimeoutRef.current = setTimeout(connect, delay);
+        reconnectTimeoutRef.current = window.setTimeout(connect, delay);
       }
     };
 

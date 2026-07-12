@@ -60,7 +60,9 @@ class NotificationDeliveryDispatcher:
             
             # Dispatch asynchronously using the thread-safe fire-and-forget mechanism
             event_json = event.model_dump_json()
-            connection_manager.dispatch_fire_and_forget(notification.recipient_id, event_json)
+            from app.infrastructure.realtime.publisher import realtime_publisher
+            
+            realtime_publisher.publish_to_user_fire_and_forget(notification.recipient_id, event_json)
         except Exception as e:
             logger.error(f"Failed to dispatch WebSocket event for notification {notification.id}: {e}")
 

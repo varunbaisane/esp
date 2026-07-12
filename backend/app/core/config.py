@@ -4,6 +4,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Engineering Support Platform"
+    ENVIRONMENT: str = "development" # "development" or "production"
     API_V1_PREFIX: str = "/api/v1"
     CORS_ORIGINS: str = "http://localhost:5173"
     
@@ -21,6 +22,9 @@ class Settings(BaseSettings):
     
     # Brevo Config
     BREVO_API_KEY: Optional[str] = None
+    
+    # Redis Config
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     model_config = SettingsConfigDict(
         env_file=".env",

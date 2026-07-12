@@ -4,7 +4,22 @@ from app.core.config import settings
 from app.api.v1.router import api_router
 from app.api.v1.endpoints import health, version
 
-app = FastAPI(title=settings.PROJECT_NAME)
+from contextlib import asynccontextmanager
+from app.infrastructure.realtime.redis_client import redis_client
+from app.infrastructure.realtime.subscriber import realtime_subscriber
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await redis_client.connect()
+    if redis_client.is_connected:
+        realtime_subscriber.start()
+    yield
+    # Shutdown
+    await realtime_subscriber.stop()
+    await redis_client.disconnect()
+
+app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

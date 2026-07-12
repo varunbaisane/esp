@@ -64,10 +64,10 @@ export const ticketService = {
     return response.data;
   },
 
-  invalidateCache: (ticketId?: number): void => {
+  invalidateCache: (_ticketId?: number): void => {
     // TODO:
     // Currently invalidates all ticket-related caches.
-    // Future: invalidate only caches related to ticketId.
+    // Future: invalidate only caches related to _ticketId.
     clearCache("/tickets");
     clearCache("/audit");
   }

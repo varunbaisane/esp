@@ -20,6 +20,8 @@ async def websocket_notifications(
     token: str = Query(...),
     db: Session = Depends(get_db)
 ):
+    await websocket.accept()
+
     # Authenticate using existing JWT
     try:
         payload = decode_access_token(token)
@@ -27,11 +29,11 @@ async def websocket_notifications(
         user = user_repo.get_by_id(int(payload.sub))
         if not user:
             logger.warning("WebSocket authentication failed: User not found")
-            await websocket.close(code=1008)
+            await websocket.close(code=1008, reason="User not found")
             return
     except (InvalidTokenError, TokenExpiredError) as e:
         logger.warning(f"WebSocket authentication failed: {e}")
-        await websocket.close(code=1008)
+        await websocket.close(code=1008, reason="Token invalid or expired")
         return
 
     # Register authenticated socket
