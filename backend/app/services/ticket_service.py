@@ -212,7 +212,7 @@ class TicketService:
             old_assignee_name = ticket.assigned_to_name if ticket.assigned_to_name else "Unassigned"
             new_assignee_name = str(assigned_user.full_name)
             ticket.assigned_to_id = update_data.assigned_to_id
-            self._audit_service.log_ticket_assigned(actor, ticket, old_assignee_id, update_data.assigned_to_id)
+            self._audit_service.log_ticket_reassigned(actor, ticket, old_assignee_id, update_data.assigned_to_id)
             
             if old_assignee_id is None:
                 self._notification_service.notify_ticket_assigned(ticket, actor, update_data.assigned_to_id, new_assignee_name)

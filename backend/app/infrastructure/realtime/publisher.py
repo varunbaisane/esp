@@ -11,6 +11,14 @@ class RealtimePublisher:
     def __init__(self):
         self.loop = None
 
+    def initialize(self):
+        """
+        Captures the running event loop when the application starts.
+        This must be called from the main FastAPI application startup thread,
+        regardless of whether Redis is connected or not.
+        """
+        self.loop = asyncio.get_running_loop()
+
     def _ensure_loop(self):
         if self.loop is None or not self.loop.is_running():
             try:

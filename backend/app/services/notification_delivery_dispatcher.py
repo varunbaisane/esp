@@ -61,10 +61,29 @@ class NotificationDeliveryDispatcher:
             # Dispatch asynchronously using the thread-safe fire-and-forget mechanism
             event_json = event.model_dump_json()
             from app.infrastructure.realtime.publisher import realtime_publisher
-            
             realtime_publisher.publish_to_user_fire_and_forget(notification.recipient_id, event_json)
         except Exception as e:
             logger.error(f"Failed to dispatch WebSocket event for notification {notification.id}: {e}")
+
+    def _should_dispatch_websocket(self, notification: Notification, notification_type: NotificationType) -> bool:
+        """
+        Determines whether to send the websocket payload to the frontend.
+        The frontend locally uses this payload to trigger IN_APP (toast/bell) 
+        and/or BROWSER (HTML5) notifications based on its own preference checks.
+        """
+        return (
+            self.preference_service.is_channel_enabled(
+                notification.recipient_id,
+                notification_type,
+                NotificationChannel.IN_APP
+            )
+            or
+            self.preference_service.is_channel_enabled(
+                notification.recipient_id,
+                notification_type,
+                NotificationChannel.BROWSER
+            )
+        )
 
     def dispatch(self, notification: Notification, content: NotificationContent) -> None:
         """
@@ -90,9 +109,5 @@ class NotificationDeliveryDispatcher:
         ):
             self._dispatch_email(notification, content)
 
-        if self.preference_service.is_channel_enabled(
-            notification.recipient_id,
-            notification_type,
-            NotificationChannel.BROWSER
-        ):
+        if self._should_dispatch_websocket(notification, notification_type):
             self._dispatch_websocket(notification, content)

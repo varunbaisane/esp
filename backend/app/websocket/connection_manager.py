@@ -52,7 +52,6 @@ class ConnectionManager:
     async def publish(self, message: str):
         """
         Publishes a message to relevant connections.
-        Currently iterates all users (Phase 9.2).
         In Phase 9.5 (Multi-workspace), this will only target applicable users.
         """
         for user_id in list(self.active_connections.keys()):

@@ -1,4 +1,6 @@
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.router import api_router
@@ -12,6 +14,10 @@ from app.infrastructure.realtime.subscriber import realtime_subscriber
 async def lifespan(app: FastAPI):
     # Startup
     await redis_client.connect()
+    
+    from app.infrastructure.realtime.publisher import realtime_publisher
+    realtime_publisher.initialize()
+    
     if redis_client.is_connected:
         realtime_subscriber.start()
     yield

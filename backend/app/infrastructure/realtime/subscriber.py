@@ -25,8 +25,8 @@ class RealtimeSubscriber:
                 break
 
             if message["type"] == "pmessage":
-                channel = message["channel"]
-                data = message["data"]
+                channel = message.get("channel")
+                data = message.get("data")
                 
                 try:
                     if channel == "esp:realtime:broadcast":

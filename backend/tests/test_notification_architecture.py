@@ -214,6 +214,6 @@ def test_notification_pipeline_wiring():
 # -------------------------------------------------------------------
 # TODO: Watchers - Ensure watchers receive notifications similar to assignee
 # TODO: Mentions - Ensure @mentions trigger in-app alerts and resolve user IDs correctly
-# TODO: WebSockets - Expose NotificationDeliveryDispatcher._dispatch_browser to push events to active WS connections
+
 # TODO: Redis Queue - Decouple dispatcher to a background worker to prevent HTTP blocking on Brevo
 # TODO: Multi-workspace isolation - Add workspace_id bounds to NotificationService queries to prevent cross-tenant notification leaks
