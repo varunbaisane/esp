@@ -6,6 +6,8 @@ import { authService } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
 import { COLORS } from "../../styles/design-tokens";
 import axios from "axios";
+import { GoogleLogin } from "@react-oauth/google";
+import type { CredentialResponse } from "@react-oauth/google";
 
 export const LoginForm = () => {
   const navigate = useNavigate();
@@ -75,6 +77,47 @@ export const LoginForm = () => {
           {error}
         </div>
       )}
+
+      <div className="flex justify-center w-full">
+        <GoogleLogin
+          onSuccess={async (credentialResponse: CredentialResponse) => {
+            if (!credentialResponse.credential) return;
+            setError(null);
+            setIsLoading(true);
+            try {
+              const response = await authService.loginWithGoogle(credentialResponse.credential);
+              await login(response.access_token, false);
+              navigate("/dashboard");
+            } catch (err) {
+               if (axios.isAxiosError(err) && err.response?.data?.detail) {
+                  setError(err.response.data.detail);
+               } else {
+                  setError("Google login failed");
+               }
+            } finally {
+              setIsLoading(false);
+            }
+          }}
+          onError={() => {
+            setError("Google login failed");
+          }}
+          useOneTap={false}
+          theme="outline"
+          size="large"
+          text="continue_with"
+          shape="rectangular"
+          width="100%"
+        />
+      </div>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">Or continue with</span>
+        </div>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700">Email address</label>

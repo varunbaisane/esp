@@ -7,6 +7,9 @@ import { PageLoader } from "./components/common/PageLoader";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { AppNotificationProvider } from "./context/AppNotificationContext";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 const DashboardPage = lazy(() => import("./pages/DashboardPage").then(module => ({ default: module.DashboardPage })));
 const TeamOperationsPage = lazy(() => import("./pages/TeamOperationsPage").then(module => ({ default: module.TeamOperationsPage })));
@@ -32,8 +35,9 @@ import { TicketSyncProvider } from "./context/TicketSyncContext";
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <BrowserRouter>
+        <AuthProvider>
         <BrowserNotificationProvider>
           <NotificationProvider>
             <NotificationToastProvider>
@@ -84,8 +88,9 @@ function App() {
             </NotificationToastProvider>
           </NotificationProvider>
         </BrowserNotificationProvider>
-      </AuthProvider>
-    </BrowserRouter>
+        </AuthProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 

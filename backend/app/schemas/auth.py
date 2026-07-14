@@ -25,6 +25,9 @@ class LoginRequest(BaseModel):
     password: str
     remember_me: bool = False
 
+class GoogleLoginRequest(BaseModel):
+    id_token: str
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

@@ -23,6 +23,10 @@ class UserRepository:
     def get_by_email(self, email: str) -> User | None:
         stmt = select(User).where(User.email == email)
         return self._session.execute(stmt).scalar_one_or_none()
+        
+    def get_by_google_sub(self, google_sub: str) -> User | None:
+        stmt = select(User).where(User.google_sub == google_sub)
+        return self._session.execute(stmt).scalar_one_or_none()
 
     def list(self) -> list[User]:
         stmt = select(User)

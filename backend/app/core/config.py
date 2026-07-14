@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     
     # Redis Config
     REDIS_URL: str = "redis://localhost:6379/0"
+    
+    # Google OAuth
+    GOOGLE_CLIENT_ID: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

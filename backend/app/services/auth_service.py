@@ -39,3 +39,48 @@ class AuthService:
             raise UnverifiedEmailError()
             
         return user
+
+    def authenticate_google_user(self, db: Session, id_token: str) -> User:
+        from app.services.google_auth_service import GoogleAuthService
+        from app.services.notification_preference_service import NotificationPreferenceService
+        
+        token_info = GoogleAuthService.verify_token(id_token)
+        google_sub = token_info["sub"]
+        email = token_info["email"]
+        name = token_info["name"]
+        picture = token_info.get("picture")
+        
+        user_repo = UserRepository(db)
+        
+        # Case B: Existing Google account
+        user = user_repo.get_by_google_sub(google_sub)
+        if user:
+            if user.google_picture != picture:
+                user.google_picture = picture
+                db.commit()
+            return user
+            
+        # Case C: Existing LOCAL account with same email
+        user = user_repo.get_by_email(email)
+        if user:
+            user.google_sub = google_sub
+            if not user.google_picture:
+                user.google_picture = picture
+            user.email_verified = True
+            db.commit()
+            return user
+            
+        # Case A: User does not exist, create account
+        new_user = User(
+            email=email,
+            full_name=name,
+            google_sub=google_sub,
+            google_picture=picture,
+            email_verified=True,
+            hashed_password="!GOOGLE_AUTH_ONLY!"
+        )
+        created_user = user_repo.create(new_user)
+        NotificationPreferenceService(db).create_defaults(created_user.id)
+        db.commit()
+        
+        return created_user

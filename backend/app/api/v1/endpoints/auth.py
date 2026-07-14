@@ -6,7 +6,7 @@ from app.api.deps import get_db
 from app.api.deps.auth import get_current_user
 from app.models import User
 from app.schemas.auth import (
-    RegisterRequest, LoginRequest, TokenResponse, CurrentUserResponse, RegisterResponse,
+    RegisterRequest, LoginRequest, GoogleLoginRequest, TokenResponse, CurrentUserResponse, RegisterResponse,
     SendOTPRequest, VerifyOTPRequest, ResetPasswordRequest
 )
 from app.schemas.user import UserRead
@@ -90,6 +90,25 @@ def login(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Email address not verified."
+        )
+
+@router.post("/google", response_model=TokenResponse)
+def login_with_google(
+    data: GoogleLoginRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Authenticate user using Google ID Token and return an access token.
+    """
+    try:
+        user = auth_service.authenticate_google_user(db, data.id_token)
+        # Issue our own JWT standard token
+        token = create_access_token(subject=str(user.id))
+        return TokenResponse(access_token=token)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
         )
 
 @router.post("/send-verification-otp")

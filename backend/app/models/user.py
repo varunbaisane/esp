@@ -23,6 +23,11 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     full_name: Mapped[str] = mapped_column(String, nullable=False)
+    
+    # OAuth Fields
+    google_sub: Mapped[str | None] = mapped_column(String, unique=True, index=True, nullable=True)
+    google_picture: Mapped[str | None] = mapped_column(String, nullable=True)
+    
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_system_account: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
